@@ -1,0 +1,33 @@
+name: Prepare public-domain nature cues (one-time)
+
+on:
+  push:
+    paths:
+      - ".github/workflows/prepare-nature.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download, edit and inspect source audio
+        run: python .github/scripts/prepare_nature.py
+      - name: Commit only the three cues
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add meditation/sounds/foret.mp3 meditation/sounds/oiseau.mp3 meditation/sounds/sousbois.mp3
+          if git diff --cached --quiet; then
+            echo "Audio unchanged"
+          else
+            git commit -m "assets: add public-domain nature cues"
+            git push
+          fi
