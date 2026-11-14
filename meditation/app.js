@@ -3,7 +3,7 @@
 
       const $ = (id) => document.getElementById(id);
       const el = Object.fromEntries([
-        'status', 'title', 'description', 'stateText', 'symbol', 'clock', 'peek', 'fieldSvg', 'fieldWaveOuter', 'fieldWaveMiddle', 'fieldWaveInner', 'fieldWaveCore', 'setup', 'modeFree',
+        'status', 'title', 'description', 'stateText', 'clock', 'peek', 'fieldSvg', 'fieldSheen', 'fieldWaveOuter', 'fieldWaveMiddle', 'fieldWaveInner', 'fieldWaveCore', 'setup', 'modeFree',
         'markerRow', 'markerLabel', 'marker',
         'delay', 'tone', 'volume', 'testSound', 'motion', 'dark', 'wake', 'wakeHint', 'start', 'activeControls',
         'pauseResume', 'stop',
@@ -283,7 +283,6 @@
       function updateClock() {
         // Le cercle reste contemplatif : aucune action ne révèle le chronomètre.
         el.clock.classList.add('hidden');
-        el.symbol.classList.remove('hidden');
       }
 
       // Un véritable champ vectoriel : les points des courbes évoluent, pas seulement leur rotation.
@@ -301,10 +300,12 @@
       let fieldElapsed = 0;
       let fieldHasDrawn = false;
       function fieldPath(ring, time) {
-        const segments = 152;
+        // Courbe de Catmull-Rom périodique, transformée en Bézier fermée.
+        // Tangentes identiques au raccord : aucun début ni fin de trait perceptible.
+        const segments = 112;
+        const points = [];
         const angleOffset = Math.sin(time * .09 + ring.phase) * .08;
         const oval = ring.oval + Math.sin(time * .13 + ring.phase) * .012;
-        let path = '';
         for (let i = 0; i < segments; i++) {
           const a = i * Math.PI * 2 / segments;
           const wave =
@@ -312,14 +313,38 @@
             .38 * Math.cos(3 * a - time * .23 + ring.phase * .75) +
             .19 * Math.sin(5 * a + time * .17 - ring.phase * .5);
           const radius = ring.radius + ring.amplitude * wave;
-          const x = 200 + Math.cos(a + angleOffset) * radius * oval;
-          const y = 200 + Math.sin(a + angleOffset) * radius / oval;
-          path += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2);
+          points.push({
+            x: 200 + Math.cos(a + angleOffset) * radius * oval,
+            y: 200 + Math.sin(a + angleOffset) * radius / oval
+          });
+        }
+        const coord = (value) => value.toFixed(2);
+        let path = 'M' + coord(points[0].x) + ' ' + coord(points[0].y);
+        for (let i = 0; i < segments; i++) {
+          const previous = points[(i + segments - 1) % segments];
+          const from = points[i];
+          const to = points[(i + 1) % segments];
+          const next = points[(i + 2) % segments];
+          const c1x = from.x + (to.x - previous.x) / 6;
+          const c1y = from.y + (to.y - previous.y) / 6;
+          const c2x = to.x - (next.x - from.x) / 6;
+          const c2y = to.y - (next.y - from.y) / 6;
+          path += 'C' + coord(c1x) + ' ' + coord(c1y) +
+            ' ' + coord(c2x) + ' ' + coord(c2y) +
+            ' ' + coord(to.x) + ' ' + coord(to.y);
         }
         return path + 'Z';
       }
       function paintField(time) {
         for (const ring of fieldRings) ring.node.setAttribute('d', fieldPath(ring, time));
+        // Le reflet se déplace par un dégradé doux sur toute la courbe fermée.
+        const direction = time * .12;
+        const dx = Math.cos(direction) * 175;
+        const dy = Math.sin(direction) * 175;
+        el.fieldSheen.setAttribute('x1', (200 - dx).toFixed(2));
+        el.fieldSheen.setAttribute('y1', (200 - dy).toFixed(2));
+        el.fieldSheen.setAttribute('x2', (200 + dx).toFixed(2));
+        el.fieldSheen.setAttribute('y2', (200 + dy).toFixed(2));
         fieldHasDrawn = true;
       }
       function frameField(now) {

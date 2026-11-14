@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.11').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.11.1').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -65,7 +65,7 @@ with sync_playwright() as p:
  assert page.locator('#peek').evaluate("el=>el.classList.contains('is-field-active')")
  # Métadonnées de partage et visuels servent de vrais fichiers image.
  assert page.locator('link[rel="canonical"]').get_attribute('href')=='https://mebius.cc/meditation/'
- assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg?v=3.11.0'
+ assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg?v=3.11.1'
  assert page.locator('meta[property="og:image:width"]').get_attribute('content')=='1200'
  assert page.locator('meta[property="og:image:height"]').get_attribute('content')=='630'
  assert page.locator('meta[name="twitter:card"]').get_attribute('content')=='summary_large_image'
@@ -81,7 +81,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.11').is_visible()
+ assert page.get_by_text('Version 3.11.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -124,25 +124,39 @@ with sync_playwright() as p:
  ring=page.locator('#peek').bounding_box()
  page.mouse.click(ring['x']+ring['width']/2,ring['y']+ring['height']/2)
  assert page.locator('#clock').is_hidden(), 'Aucune interaction avec le cercle ne doit dévoiler le temps'
- # L'onde intérieure et le point central animent une oscillation lente de 14 secondes.
- assert page.locator('.orb').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='field-wave'")
- assert page.locator('.center-symbol').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='thought-drift'")
- assert page.locator('.center-symbol').evaluate("(el)=>getComputedStyle(el,'::after').animationDuration==='14s'")
- 
- name=page.locator('.orb').evaluate('(el) => getComputedStyle(el).animationName')
+
+ # Le champ est entièrement organique : ni point central, ni cercle fixe, ni halo elliptique.
+ assert page.locator('.center-symbol').count()==0
+ assert page.locator('.orb').count()==0
+ assert page.locator('.field-underlay').count()==0
+ assert page.locator('.field-glint').count()==0
+ assert page.evaluate("getComputedStyle(document.body).backgroundImage==='none'"), 'No horizontal elliptical halo'
+ path_element=page.locator('#fieldWaveMiddle')
+ path_data=path_element.get_attribute('d')
+ assert path_data.startswith('M') and path_data.endswith('Z') and 'C' in path_data and 'L' not in path_data, 'Closed cubic curve without visible line endpoints'
+ continuity=path_element.evaluate("""el => {
+   const len=el.getTotalLength();
+   const start=el.getPointAtLength(0), end=el.getPointAtLength(len);
+   const previous=el.getPointAtLength(len-.5), next=el.getPointAtLength(.5);
+   const a=[start.x-previous.x,start.y-previous.y];
+   const b=[next.x-start.x,next.y-start.y];
+   const dot=a[0]*b[0]+a[1]*b[1];
+   const length=Math.hypot(...a)*Math.hypot(...b);
+   return {distance:Math.hypot(start.x-end.x,start.y-end.y),tangent:dot/length};
+ }""")
+ assert continuity['distance']<.2 and continuity['tangent']>.97, continuity
+ assert page.locator('.field-sheen').first.evaluate("(el)=>getComputedStyle(el).strokeDasharray==='none'")
+ name=page.locator('.field-svg').evaluate('(el)=>getComputedStyle(el).animationName')
  assert name=='quiet-pulse',name
- # Forcer une position intermédiaire de l'animation pour garantir une variation visible réelle
- samples=page.evaluate('''() => {
-   const orb = document.querySelector('.orb');
-   const anim=orb.getAnimations()[0];
-   anim.currentTime = 0; const a=getComputedStyle(orb).transform;
-   anim.currentTime = 7000; const b=getComputedStyle(orb).transform;
-   anim.currentTime = 3500;
-   return {a,b,mid:getComputedStyle(orb).transform};
- }''')
- print('ANIMATION transforms:',samples)
+ samples=page.evaluate("""() => {
+   const element=document.querySelector('.field-svg');
+   const anim=element.getAnimations().find(a=>a.animationName==='quiet-pulse');
+   anim.currentTime=0; const a=getComputedStyle(element).transform;
+   anim.currentTime=7000; const b=getComputedStyle(element).transform;
+   anim.currentTime=3500;
+   return {a,b};
+ }""")
  assert samples['a']!=samples['b'],samples
- assert samples['a'].startswith('matrix(1, ') and '1.105' in samples['b'],samples
  # screenshot skipped in CI
  page.locator('#pauseResume').click()
  assert_geometry(original,geometry(page),'pause')
@@ -182,7 +196,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.11.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.11.1' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

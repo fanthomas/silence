@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.11.1] - 2026-11-15
+
+- Point central, déplacement orbital et cercle statique supprimés : seules les courbes SVG organiques restent visibles.
+- Lignes reconstruites en courbes de Bézier périodiques, avec raccord lisse et continu, sans angle à la fermeture.
+- Reflets continus via un dégradé progressif animé, sans traits pointillés ni extrémités apparentes.
+- Grand halo elliptique horizontal supprimé de l’arrière-plan, sans changer la structure des commandes.
+- Durées, sons et animation lente conservés.
+
 ## [3.11.0] - 2026-11-14
 
 - Illustration fixe remplacée par quatre courbes SVG organiques réellement redessinées en temps réel.
