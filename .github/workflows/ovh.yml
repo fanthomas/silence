@@ -6,6 +6,8 @@ on:
     paths:
       - "meditation/**"
       - "tests/**"
+      - "VERSION"
+      - ".github/release-notes/**"
       - ".github/workflows/ovh.yml"
       - ".github/scripts/deploy_ovh.py"
       - ".github/ovh_known_hosts"
@@ -75,3 +77,41 @@ jobs:
           OVH_SFTP_KNOWN_HOSTS: ${{ secrets.OVH_SFTP_KNOWN_HOSTS }}
           DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'deploy' }}
         run: python .github/scripts/deploy_ovh.py "$DEPLOY_MODE"
+
+  release:
+    name: Release GitHub versionnée
+    needs: [tests, ovh]
+    if: ${{ github.event_name == 'push' && needs.ovh.result == 'success' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Créer la release si la version est nouvelle
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+$ ]]; then
+            echo "VERSION invalide : $version" >&2
+            exit 1
+          fi
+          tag="v${version}"
+          notes=".github/release-notes/${tag}.md"
+          test -s "$notes" || { echo "Notes de release manquantes : $notes" >&2; exit 1; }
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "La release $tag existe déjà : aucune nouvelle version à publier."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Le tag $tag existe, mais pas la release ; intervention nécessaire." >&2
+            exit 1
+          fi
+          (cd meditation && zip -q -r "$RUNNER_TEMP/silence-${version}.zip" .)
+          gh release create "$tag" "$RUNNER_TEMP/silence-${version}.zip" \\
+            --target "$GITHUB_SHA" \\
+            --title "silence. $tag" \\
+            --notes-file "$notes" \\
+            --latest
