@@ -44,7 +44,10 @@ with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as f:
             look_for_keys=False, allow_agent=False, timeout=25, auth_timeout=25,
         )
         with client.open_sftp() as sftp:
-            print("Connexion SFTP vérifiée. Répertoire autorisé :", sftp.normalize("."))
+            remote_dir = sftp.normalize(".")
+            if remote_dir.rstrip("/").split("/")[-1] != "meditation":
+                raise SystemExit("Sécurité : le répertoire distant n'est pas meditation")
+            print("Connexion SFTP vérifiée. Dossier cible : meditation")
             if mode == "verify":
                 print("MODE VÉRIFICATION : aucun fichier envoyé.")
             else:
