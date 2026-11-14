@@ -1,0 +1,32 @@
+name: OVH / identification SFTP (sans connexion)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/ovh-hostkey.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  hostkey:
+    name: Relever les clés publiques du serveur OVH
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Scanner les clés et afficher les empreintes
+        shell: bash
+        run: |
+          set -euo pipefail
+          host="ftp.cluster111.hosting.ovh.net"
+          for attempt in 1 2 3; do
+            ssh-keyscan -T 10 -p 22 -t rsa,ecdsa,ed25519 "$host" 2>/dev/null | sort -u > /tmp/ovh-keys || true
+            test -s /tmp/ovh-keys && break
+            sleep 2
+          done
+          test -s /tmp/ovh-keys
+          echo "Clés PUBLIQUES proposées par le serveur (à vérifier via une source indépendante) :"
+          cat /tmp/ovh-keys
+          echo "Empreintes SHA-256 :"
+          ssh-keygen -l -E sha256 -f /tmp/ovh-keys
