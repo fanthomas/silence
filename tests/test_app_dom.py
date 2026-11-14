@@ -36,10 +36,10 @@ with sync_playwright() as p:
  page.on('pageerror',lambda error: errors.append(str(error)))
  init(page)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==5
+ assert page.locator('#tone option').count()==3
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.7').is_visible()
+ assert page.get_by_text('Version 3.7.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

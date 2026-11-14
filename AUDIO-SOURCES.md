@@ -1,11 +1,7 @@
-# Sources des sons de nature
+# Source du pépiement
 
-Les trois repères naturels sont des **extraits édités de véritables enregistrements de terrain**, placés dans le domaine public par leurs auteurs. Les prises originales ne tournent pas en boucle : un bref extrait est joué uniquement au repère temporel.
+**Pépiement** (`meditation/sounds/pepiement.mp3`) est un court extrait de l'enregistrement de terrain [Birds forest.ogg](https://commons.wikimedia.org/wiki/File:Birds_forest.ogg), réalisé par **barracuda1983** et placé dans le domaine public.
 
-- **Forêt** (`foret.mp3`) : *Birds forest.ogg*, forêt de Fontainebleau, barracuda1983, domaine public. Source : https://commons.wikimedia.org/wiki/File:Birds_forest.ogg
-- **Oiseau** (`oiseau.mp3`) : *Gentle breeze and birds singing.ogg*, ezwa, domaine public (PDSounds). Source : https://commons.wikimedia.org/wiki/File:Gentle_breeze_and_birds_singing.ogg
-- **Sous-bois** (`sousbois.mp3`) : *Walk in the rainforest.ogg*, ezwa, domaine public (PDSounds). Source : https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg
+L'extrait est isolé des sons d'ambiance, filtré et accompagné de fondus. Sa durée est d'environ 0,41 seconde. Il ne constitue ni une boucle, ni une bande-son de forêt.
 
-**Adaptations** : extraits de 1,02 à 1,22 seconde, filtrage doux, réduction de dynamique, fondus d'entrée et de sortie, réglage du niveau, mono MP3 à 24 kHz.
-
-Les signaux **Bol feutré** et **Bois doux** restent inchangés, sous forme d'échantillons directement inclus dans `app.js`.
+**Bol feutré** et **Bois doux** sont conservés à l'identique dans le JavaScript.

@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.7.1] - 2026-11-14
+
+- Sons de nature simplifiés : un seul pépiement naturel de 0,41 seconde, sans ambiance continue.
+- Anciennes ambiances Forêt, Oiseau et Sous-bois retirées du sélecteur.
+- Pépiement atténué à la lecture, Bol feutré et Bois doux inchangés.
+- Anciennes préférences sonores naturelles automatiquement converties vers Pépiement.
+- Cache PWA et tests mis à jour.
+
 ## [3.7.0] - 2026-11-14
 
 - Accueil animé : silence. apparaît au centre puis gagne sa place dans l'en-tête.

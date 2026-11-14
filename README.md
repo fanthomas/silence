@@ -14,7 +14,7 @@ Avec **silence.**, tu choisis une durée ou tu médites librement. Après **10 m
 
 - **Libre**, avec un repère à 10 minutes et un second facultatif à 15 minutes.
 - **10, 12, 15 ou 20 minutes**, pour des séances à durée fixe.
-- **Cinq sons feutrés**, dont des enregistrements de forêt et de chants d’oiseaux.
+- **Trois repères brefs** : bol feutré, bois doux et un petit pépiement, sans ambiance sonore continue.
 - **Un cercle vivant**, qui évolue lentement sans imposer de rythme respiratoire.
 - **Un retour en douceur**, silencieux et sans interruption brusque.
 
