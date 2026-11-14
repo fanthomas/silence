@@ -24,8 +24,10 @@ if os.environ.get("OVH_SFTP_HOST") != HOST or os.environ.get("OVH_SFTP_USER") !=
     raise SystemExit("Accès OVH non conforme au compte restreint")
 password = os.environ.get("OVH_SFTP_PASSWORD", "")
 known_hosts = os.environ.get("OVH_SFTP_KNOWN_HOSTS", "")
+if not known_hosts.strip():
+    known_hosts = pathlib.Path(".github/ovh_known_hosts").read_text(encoding="utf-8")
 if not password or not known_hosts.strip():
-    raise SystemExit("Secrets OVH_SFTP_PASSWORD ou OVH_SFTP_KNOWN_HOSTS manquants")
+    raise SystemExit("Mot de passe SFTP ou clé publique OVH manquant")
 base = pathlib.Path("meditation")
 if mode == "deploy" and any(not (base / name).is_file() for name in FILES):
     raise SystemExit("Fichiers application incomplets : publication annulée")
