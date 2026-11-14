@@ -6,6 +6,9 @@ on:
     paths:
       - "meditation/**"
       - "tests/**"
+      - ".github/workflows/ovh.yml"
+      - ".github/scripts/deploy_ovh.py"
+      - ".github/ovh_known_hosts"
   workflow_dispatch:
     inputs:
       mode:
@@ -55,7 +58,7 @@ jobs:
   ovh:
     name: Connexion / déploiement SFTP limité
     needs: tests
-    if: ${{ github.event_name == 'workflow_dispatch' || vars.OVH_DEPLOY_ENABLED == 'true' }}
+    if: ${{ needs.tests.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: production
     steps:
@@ -70,5 +73,5 @@ jobs:
           OVH_SFTP_USER: ${{ secrets.OVH_SFTP_USER }}
           OVH_SFTP_PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
           OVH_SFTP_KNOWN_HOSTS: ${{ secrets.OVH_SFTP_KNOWN_HOSTS }}
-          DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'deploy' }}
+          DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (vars.OVH_DEPLOY_ENABLED == 'true' && 'deploy' || 'verify') }}
         run: python .github/scripts/deploy_ovh.py "$DEPLOY_MODE"
