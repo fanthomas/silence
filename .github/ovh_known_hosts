@@ -1,0 +1,4 @@
+# Host key observed via GitHub Actions SSH scan on 2026-11-14.
+# Public key only. Verify fingerprint with OVH independently before first SFTP login:
+# ED25519 SHA256:Ju4uO1Mp/DAuXXDumNI3JL26Z55W9YWprMdwGAEPKrM
+ftp.cluster111.hosting.ovh.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKcah+V7gA/DZ+T4yA2tI7sXkcjsloZ4iIZ/gNfqTSEf
