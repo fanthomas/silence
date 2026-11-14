@@ -140,7 +140,7 @@ with sync_playwright() as p:
  # Regression: saved both toggles true and rejected sound -> default bol
  migration=browser.new_context(viewport={'width':360,'height':780})
  p2=migration.new_page(); p2.on('pageerror',lambda error: errors.append('migration: '+str(error)))
- saved={'silence.settings.v2':json.dumps({'mode':'free','minutes':15,'motion':True,'dark':True,'tone':'goutte','delay':False,'volume':60})}
+ saved={'silence.settings.v2':json.dumps({'mode':'free','minutes':15,'motion':True,'dark':True,'tone':'invalid-old-tone','delay':False,'volume':60})}
  init(p2,saved)
  p2.locator('#settingsButton').click()
  assert p2.locator('#motion').is_checked()

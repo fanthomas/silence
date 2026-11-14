@@ -165,7 +165,7 @@ with sync_playwright() as p:
  page.locator('#closeSettings').click()
  print('EXCLUSIVE modes: OK')
  # Regression: saved both on, and old tone, migrate to bol
- page.evaluate('''() => localStorage.setItem('silence.settings.v2',JSON.stringify({mode:'free',minutes:15,motion:true,dark:true,tone:'goutte',delay:false,volume:60}))''')
+ page.evaluate('''() => localStorage.setItem('silence.settings.v2',JSON.stringify({mode:'free',minutes:15,motion:true,dark:true,tone:'invalid-old-tone',delay:false,volume:60}))''')
  page.reload(wait_until='networkidle')
  page.locator('#settingsButton').click()
  assert page.locator('#motion').is_checked()
