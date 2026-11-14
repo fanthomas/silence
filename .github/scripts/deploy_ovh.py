@@ -54,8 +54,12 @@ with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as f:
                     except OSError:
                         exists = False
                     print("SFTP : fichier présent", candidate, exists)
-            if remote_dir.rstrip("/").split("/")[-1] != "meditation":
-                raise SystemExit("Sécurité : le répertoire distant n'est pas meditation")
+            with sftp.open("index.html", "rb") as remote_index:
+                sample = remote_index.read(8192).decode("utf-8", errors="replace")
+            is_silence = "<title>silence.</title>" in sample and "manifest.webmanifest" in sample
+            print("SFTP : signature silence. dans index.html =", is_silence)
+            if not is_silence:
+                raise SystemExit("Sécurité : le dossier SFTP ne contient pas silence.")
             print("Connexion SFTP vérifiée. Dossier cible : meditation")
             if mode == "verify":
                 print("MODE VÉRIFICATION : aucun fichier envoyé.")
