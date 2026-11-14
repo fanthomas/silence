@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.9').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.10').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -53,10 +53,13 @@ with sync_playwright() as p:
  assert intro_geometry['endX']<80,intro_geometry
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==2
+ assert page.locator('#tone option').count()==3
+ assert page.locator('.field-art').count()==1
+ page.wait_for_function("document.querySelector('.field-art').complete && document.querySelector('.field-art').naturalWidth > 500", timeout=7000)
+ assert page.locator('.field-art').evaluate("el => getComputedStyle(el).animationName==='field-art-breathe'")
  # Métadonnées de partage et visuels servent de vrais fichiers image.
  assert page.locator('link[rel="canonical"]').get_attribute('href')=='https://mebius.cc/meditation/'
- assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg'
+ assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg?v=3.10.0'
  assert page.locator('meta[property="og:image:width"]').get_attribute('content')=='1200'
  assert page.locator('meta[property="og:image:height"]').get_attribute('content')=='630'
  assert page.locator('meta[name="twitter:card"]').get_attribute('content')=='summary_large_image'
@@ -72,7 +75,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.9').is_visible()
+ assert page.get_by_text('Version 3.10').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -84,6 +87,20 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Bois')",timeout=5000)
  print('SOUND bambou:',page.locator('#soundStatus').text_content())
+ page.locator('#tone').select_option('goutte')
+ page.locator('#testSound').click()
+ page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Goutte douce')",timeout=7000)
+ print('SOUND goutte:',page.locator('#soundStatus').text_content())
+ duration=page.evaluate("""async () => {
+   const response=await fetch('./sounds/goutte.wav');
+   if(!response.ok) throw new Error('No audio file');
+   const context=new AudioContext();
+   const buffer=await context.decodeAudioData(await response.arrayBuffer());
+   await context.close();
+   return buffer.duration;
+ }""")
+ assert .33 <= duration <= .38, duration
+ 
  page.locator('#closeSettings').click()
  original=geometry(page)
  page.locator('#start').click()
@@ -159,7 +176,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.9.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.10.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

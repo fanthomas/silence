@@ -46,10 +46,12 @@ with sync_playwright() as p:
  page.on('pageerror',lambda error: errors.append(str(error)))
  init(page)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==2
+ assert page.locator('#tone option').count()==3
+ assert page.locator('.field-art').count()==1
+ assert page.locator('.field-art').evaluate("el => getComputedStyle(el).animationName==='field-art-breathe'")
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.9').is_visible()
+ assert page.get_by_text('Version 3.10').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
@@ -60,6 +62,9 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Bois')",timeout=8000)
  print('SOUND bambou:',page.locator('#soundStatus').text_content())
+ page.locator('#tone').select_option('goutte')
+ # Dans le test DOM, le fichier WAV externe n'est pas servi; le chargement complet est testé par HTTP.
+ 
  page.locator('#closeSettings').click()
  original=geometry(page)
  page.locator('#start').click()

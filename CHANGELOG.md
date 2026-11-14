@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.10.0] - 2026-11-14
+
+- Illustration des anneaux et filaments lumineux réellement intégrée au cercle, avec un mouvement très lent de 21 secondes.
+- Nouvelle favicon circulaire à fond transparent et icônes PWA assorties, au lieu d'un carré uni.
+- Aperçu de partage mis en cohérence avec la nouvelle identité.
+- Nouveau son Goutte douce : signal original de 0,36 seconde, sans bruit de fond ni boucle.
+- Bol feutré et Bois doux inchangés.
+
 ## [3.9.0] - 2026-11-14
 
 - Cercle rendu purement visuel : aucun clic, aucune ouverture du chronomètre et aucune possibilité de le sélectionner au clavier.

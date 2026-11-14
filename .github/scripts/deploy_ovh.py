@@ -21,6 +21,8 @@ FILES = (
     "icons/favicon-48.png",
     "favicon.ico",
     "og-image.jpg",
+    "field-art.webp",
+    "sounds/goutte.wav",
 )
 mode = sys.argv[1] if len(sys.argv) > 1 else "verify"
 if mode not in ("verify", "deploy"):
