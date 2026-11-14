@@ -1,0 +1,76 @@
+name: silence. / tests et publication OVH
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "meditation/**"
+      - "tests/**"
+      - ".github/workflows/ovh.yml"
+      - ".github/scripts/deploy_ovh.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Vérifier la connexion ou publier"
+        type: choice
+        options: [verify, deploy]
+        default: verify
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: silence-production
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    name: Contrôles avant publication
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Vérifier les fichiers et le JavaScript
+        run: |
+          test -f meditation/index.html
+          test -f meditation/styles.css
+          test -f meditation/manifest.webmanifest
+          test -f meditation/icons/icon-192.png
+          test -f meditation/icons/icon-512.png
+          node --check meditation/app.js
+          node --check meditation/sw.js
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installer Chromium pour les tests
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Tests navigateur
+        run: |
+          python tests/test_app_dom.py
+          python tests/test_app.py
+
+  ovh:
+    name: Connexion / déploiement SFTP limité
+    needs: tests
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.OVH_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check paramiko==3.5.1
+      - name: Vérifier / publier uniquement dans meditation
+        env:
+          OVH_SFTP_HOST: ${{ secrets.OVH_SFTP_HOST }}
+          OVH_SFTP_USER: ${{ secrets.OVH_SFTP_USER }}
+          OVH_SFTP_PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
+          OVH_SFTP_KNOWN_HOSTS: ${{ secrets.OVH_SFTP_KNOWN_HOSTS }}
+          DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'deploy' }}
+        run: python .github/scripts/deploy_ovh.py "$DEPLOY_MODE"
