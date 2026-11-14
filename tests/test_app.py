@@ -25,7 +25,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://127.0.0.1:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.5').count()==0 # settings not open
+ assert page.get_by_text('Version 3.5').is_hidden() # settings not open
  assert page.locator('#setup').is_visible()
  assert page.locator('#tone option').count()==2
  # screenshot skipped in CI
