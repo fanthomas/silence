@@ -3,7 +3,7 @@
 
       const $ = (id) => document.getElementById(id);
       const el = Object.fromEntries([
-        'status', 'title', 'description', 'stateText', 'symbol', 'clock', 'peek', 'setup', 'modeFree',
+        'status', 'title', 'description', 'stateText', 'symbol', 'clock', 'peek', 'fieldSvg', 'fieldWaveOuter', 'fieldWaveMiddle', 'fieldWaveInner', 'fieldWaveCore', 'setup', 'modeFree',
         'markerRow', 'markerLabel', 'marker',
         'delay', 'tone', 'volume', 'testSound', 'motion', 'dark', 'wake', 'wakeHint', 'start', 'activeControls',
         'pauseResume', 'stop',
@@ -285,6 +285,68 @@
         el.clock.classList.add('hidden');
         el.symbol.classList.remove('hidden');
       }
+
+      // Un véritable champ vectoriel : les points des courbes évoluent, pas seulement leur rotation.
+      // Cadence plafonnée à 30 i/s pour préserver l'autonomie des téléphones.
+      const fieldMotionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+      const fieldRings = [
+        { node: el.fieldWaveOuter, radius: 158, amplitude: 10.0, phase: .2, oval: 1.035 },
+        { node: el.fieldWaveMiddle, radius: 129, amplitude: 11.2, phase: 1.8, oval: .985 },
+        { node: el.fieldWaveInner, radius: 96, amplitude: 7.8, phase: 3.4, oval: 1.025 },
+        { node: el.fieldWaveCore, radius: 67, amplitude: 5.0, phase: 4.6, oval: .98 }
+      ];
+      let fieldFrameId = 0;
+      let fieldFrameTime = 0;
+      let fieldLastPaint = 0;
+      let fieldElapsed = 0;
+      let fieldHasDrawn = false;
+      function fieldPath(ring, time) {
+        const segments = 152;
+        const angleOffset = Math.sin(time * .09 + ring.phase) * .08;
+        const oval = ring.oval + Math.sin(time * .13 + ring.phase) * .012;
+        let path = '';
+        for (let i = 0; i < segments; i++) {
+          const a = i * Math.PI * 2 / segments;
+          const wave =
+            .65 * Math.sin(2 * a + time * .31 + ring.phase) +
+            .38 * Math.cos(3 * a - time * .23 + ring.phase * .75) +
+            .19 * Math.sin(5 * a + time * .17 - ring.phase * .5);
+          const radius = ring.radius + ring.amplitude * wave;
+          const x = 200 + Math.cos(a + angleOffset) * radius * oval;
+          const y = 200 + Math.sin(a + angleOffset) * radius / oval;
+          path += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2);
+        }
+        return path + 'Z';
+      }
+      function paintField(time) {
+        for (const ring of fieldRings) ring.node.setAttribute('d', fieldPath(ring, time));
+        fieldHasDrawn = true;
+      }
+      function frameField(now) {
+        if (!fieldFrameTime) fieldFrameTime = now;
+        fieldElapsed += Math.min(now - fieldFrameTime, 45);
+        fieldFrameTime = now;
+        if (!fieldLastPaint || now - fieldLastPaint >= 33) {
+          paintField(fieldElapsed / 1000);
+          fieldLastPaint = now;
+        }
+        fieldFrameId = requestAnimationFrame(frameField);
+      }
+      function stopFieldAnimation() {
+        if (fieldFrameId) cancelAnimationFrame(fieldFrameId);
+        fieldFrameId = 0;
+        fieldFrameTime = 0;
+        fieldLastPaint = 0;
+      }
+      function syncFieldAnimation() {
+        const enabled = settings.motion && phase !== 'paused'
+          && document.visibilityState === 'visible' && !fieldMotionPreference?.matches;
+        el.peek.classList.toggle('is-field-active', enabled);
+        if (!fieldHasDrawn) paintField(0);
+        if (enabled && !fieldFrameId) fieldFrameId = requestAnimationFrame(frameField);
+        else if (!enabled && fieldFrameId) stopFieldAnimation();
+      }
+
       function renderSetup() {
         el.modeFree.setAttribute('aria-pressed', String(settings.mode === 'free'));
         document.querySelectorAll('.duration').forEach((button) => {
@@ -323,6 +385,7 @@
         el.stateText.textContent = '';
         el.stateText.classList.add('hidden');
         updateClock();
+        syncFieldAnimation();
         lastStage = s;
       }
       function tick() {
@@ -496,6 +559,7 @@
         });
       });
       document.addEventListener('visibilitychange', () => {
+        syncFieldAnimation();
         if (document.visibilityState === 'visible') {
           if (['running'].includes(phase)) {
             tick();
@@ -511,7 +575,9 @@
         } else { hideVeil(); }
       });
       window.addEventListener('pageshow', (event) => { if (event.persisted) { tick(); if (['running'].includes(phase)) void requestWakeLock(); } });
-      window.addEventListener('pagehide', releaseWakeLock);
+      window.addEventListener('pagehide', () => { releaseWakeLock(); stopFieldAnimation(); });
+      window.addEventListener('pageshow', syncFieldAnimation);
+      fieldMotionPreference?.addEventListener?.('change', syncFieldAnimation);
       window.addEventListener('beforeunload', saveSession);
       // La PWA vérifie les mises à jour à l'ouverture et au retour au premier plan.
       // Jamais de rechargement automatique pendant une méditation.

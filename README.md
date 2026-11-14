@@ -15,7 +15,7 @@ Avec **silence.**, tu choisis une durée ou tu médites librement. Après **10 m
 - **Libre**, avec un repère à 10 minutes et un second facultatif à 15 minutes.
 - **10, 12, 15 ou 20 minutes**, pour des séances à durée fixe.
 - **Trois repères discrets** : Bol feutré, Bois doux et Goutte douce, sans musique ni ambiance sonore.
-- **Un cercle vivant**, avec des ondulations lentes et un point qui revient au centre, sans imposer de rythme respiratoire.
+- **Un champ de courbes lumineuses**, animé en SVG, avec des oscillations lentes qui évoquent les pensées et leur retour au calme.
 
 Le temps reste masqué. Les réglages restent discrets.
 

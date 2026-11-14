@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.11.0] - 2026-11-14
+
+- Illustration fixe remplacée par quatre courbes SVG organiques réellement redessinées en temps réel.
+- Anneaux superposés avec déformations sinusoïdales indépendantes et reflets qui parcourent lentement leurs contours.
+- Animation cadencée à 30 images par seconde au maximum, arrêtée lorsque l'onglet est masqué, la séance en pause ou la réduction des animations active.
+- Géométrie du cercle et emplacement des commandes conservés ; paramètres et trois sons inchangés.
+- Suppression de la référence à l'ancien fichier illustratif et mise à jour du cache hors connexion.
+
 ## [3.10.0] - 2026-11-14
 
 - Illustration des anneaux et filaments lumineux réellement intégrée au cercle, avec un mouvement très lent de 21 secondes.

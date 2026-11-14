@@ -47,11 +47,17 @@ with sync_playwright() as p:
  init(page)
  assert page.locator('#setup').is_visible()
  assert page.locator('#tone option').count()==3
- assert page.locator('.field-art').count()==1
- assert page.locator('.field-art').evaluate("el => getComputedStyle(el).animationName==='field-art-breathe'")
+ assert page.locator('.field-art').count()==0
+ assert page.locator('#fieldSvg').count()==1
+ assert page.locator('#fieldSvg').evaluate("el => el.namespaceURI==='http://www.w3.org/2000/svg'")
+ assert page.locator('#peek').evaluate("el => el.classList.contains('is-field-active')")
+ page.wait_for_function("document.querySelector('#fieldWaveMiddle').getAttribute('d')?.length > 1000", timeout=7000)
+ original_shape=page.locator('#fieldWaveMiddle').get_attribute('d')
+ page.wait_for_timeout(260)
+ assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.10').is_visible()
+ assert page.get_by_text('Version 3.11').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

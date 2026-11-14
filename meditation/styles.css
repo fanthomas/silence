@@ -50,17 +50,45 @@
       pointer-events: none; cursor: default; user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-    /* Le visuel lumineux est désormais un véritable élément de l'interface. */
-    .field-art {
+    /* Champ vivant : quatre tracés SVG déformés en continu, pas d'image animée. */
+    .field-svg {
       position: absolute; z-index: 2; top: -34%; left: -34%;
-      width: 168%; height: 168%; object-fit: contain;
-      pointer-events: none; user-select: none; mix-blend-mode: screen;
-      transform-origin: 50% 50%; will-change: transform, opacity;
-      animation: field-art-breathe 21s ease-in-out infinite;
+      width: 168%; height: 168%; overflow: visible;
+      pointer-events: none; user-select: none;
     }
-    @keyframes field-art-breathe {
-      0%, 100% { transform: scale(1) rotate(-1.2deg); opacity: .94; }
-      50% { transform: scale(1.055) rotate(1.2deg); opacity: 1; }
+    .field-underlay circle {
+      fill: none; stroke: rgba(213, 173, 137, .11); stroke-width: .75;
+    }
+    .field-underlay circle:nth-child(2) { opacity: .72; }
+    .field-underlay circle:nth-child(3) { opacity: .9; }
+    .field-underlay circle:nth-child(4) { opacity: .52; }
+    .field-line {
+      fill: none; stroke: url(#fieldMetal); stroke-width: 1.12;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .field-line-outer { opacity: .82; }
+    .field-line-middle { opacity: .97; stroke-width: 1.27; }
+    .field-line-inner { opacity: .74; stroke-width: 1.08; }
+    .field-line-core { opacity: .5; stroke: url(#fieldFaint); stroke-width: .95; }
+    .field-glow {
+      fill: none; stroke: #e9b88d; stroke-width: 3.4;
+      opacity: .13; filter: url(#fieldGlow);
+    }
+    .field-glow-middle { opacity: .2; }
+    .field-glow-inner { opacity: .1; }
+    /* Les reflets parcourent les courbes plutôt que de faire pivoter une image. */
+    .field-glint {
+      fill: none; stroke: #f5d6b2; stroke-width: 1.5;
+      stroke-linecap: round; stroke-dasharray: 152 848; opacity: .68;
+    }
+    .field-glint-middle { stroke-dasharray: 210 790; stroke-width: 1.7; opacity: .82; }
+    .field-glint-inner { stroke-dasharray: 125 875; opacity: .48; }
+    .orb-wrap.is-field-active .field-glint-outer { animation: field-glint-travel 49s linear infinite; }
+    .orb-wrap.is-field-active .field-glint-middle { animation: field-glint-travel 37s linear infinite reverse; }
+    .orb-wrap.is-field-active .field-glint-inner { animation: field-glint-travel 44s linear infinite; }
+    @keyframes field-glint-travel {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -1000; }
     }
     .orb-wrap::before {
       content: ""; position: absolute; inset: -18%; border-radius: 50%; pointer-events: none;
