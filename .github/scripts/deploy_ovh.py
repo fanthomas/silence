@@ -45,6 +45,15 @@ with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as f:
         )
         with client.open_sftp() as sftp:
             remote_dir = sftp.normalize(".")
+            print("SFTP : dossier d'arrivée =", remote_dir.rstrip("/").split("/")[-1])
+            if mode == "verify":
+                for candidate in ("index.html", "meditation/index.html", "mebius.cc/meditation/index.html"):
+                    try:
+                        sftp.stat(candidate)
+                        exists = True
+                    except OSError:
+                        exists = False
+                    print("SFTP : fichier présent", candidate, exists)
             if remote_dir.rstrip("/").split("/")[-1] != "meditation":
                 raise SystemExit("Sécurité : le répertoire distant n'est pas meditation")
             print("Connexion SFTP vérifiée. Dossier cible : meditation")
