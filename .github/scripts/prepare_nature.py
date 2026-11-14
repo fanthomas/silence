@@ -74,7 +74,7 @@ if not .32 <= seconds <= .46 or not 1500 <= output.stat().st_size <= 7000:
 volume = subprocess.run([
     "ffmpeg", "-i", str(output), "-af", "volumedetect", "-f", "null", "-"
 ], text=True, capture_output=True, check=True)
-match = re.search(r"max_volume:\\s*(-?[0-9.]+) dB", volume.stderr)
+match = re.search(r"max_volume:\s*(-?[0-9.]+) dB", volume.stderr)
 if not match or float(match.group(1)) > -12:
     raise RuntimeError("Chirp is too loud: " + (match.group(1) if match else "unknown"))
 print(f"Isolated natural chirp at {start:.2f}s: {seconds:.2f}s; peak {match.group(1)} dBFS; {output.stat().st_size} bytes")
