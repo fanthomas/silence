@@ -46,7 +46,7 @@ with sync_playwright() as p:
  assert page.locator('#tone option').count()==5
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.6').is_visible()
+ assert page.get_by_text('Version 3.7').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels

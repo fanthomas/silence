@@ -1,7 +1,7 @@
 /* silence. — Cache hors connexion, version 3.7.0 */
 'use strict';
-const CACHE = 'silence-v3.6.0';
-const ASSETS = ['./', './index.html', './styles.css?v=3.6.0', './app.js?v=3.6.0', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './sounds/foret.mp3', './sounds/oiseau.mp3', './sounds/sousbois.mp3'];
+const CACHE = 'silence-v3.7.0';
+const ASSETS = ['./', './index.html', './styles.css?v=3.7.0', './app.js?v=3.7.0', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './sounds/foret.mp3', './sounds/oiseau.mp3', './sounds/sousbois.mp3'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
