@@ -12,4 +12,4 @@ python tests/test_app_dom.py
 python tests/test_app.py
 ```
 
-La publication SFTP est désactivée tant que la variable `OVH_DEPLOY_ENABLED` n'est pas définie sur `true`.
+Chaque modification de `main` déclenche les tests, puis publie automatiquement dans le dossier OVH dédié si tous les contrôles réussissent.

@@ -73,5 +73,5 @@ jobs:
           OVH_SFTP_USER: ${{ secrets.OVH_SFTP_USER }}
           OVH_SFTP_PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
           OVH_SFTP_KNOWN_HOSTS: ${{ secrets.OVH_SFTP_KNOWN_HOSTS }}
-          DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (vars.OVH_DEPLOY_ENABLED == 'true' && 'deploy' || 'verify') }}
+          DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'deploy' }}
         run: python .github/scripts/deploy_ovh.py "$DEPLOY_MODE"
