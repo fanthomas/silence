@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.7.0] - 2026-11-14
+
+- Accueil animé : silence. apparaît au centre puis gagne sa place dans l'en-tête.
+- Deux petites ondulations du cercle, inspirées des gouttes d'eau, au démarrage.
+- Amplitude du cercle augmentée durant la méditation, cycle conservé à 14 secondes.
+- Texte visible « En pause » retiré : le bouton Lecture indique la reprise.
+- Animation d'accueil ignorée lorsqu'une séance est reprise ou que les animations sont réduites.
+
 ## [3.6.0] - 2026-11-14
 
 - Trois nouveaux repères extraits de véritables enregistrements naturels du domaine public : Forêt, Oiseau et Sous-bois.

@@ -24,6 +24,11 @@ def init(page, stored=None):
  page.add_style_tag(content=css)
  page.add_script_tag(content=js)
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
+ if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
+  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')")
+  assert page.locator('.brand').evaluate("(el)=>el.getAnimations().some(a=>a.animationName==='intro-signature')")
+  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='intro-ripple'")
+ page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,**({'executable_path': '/usr/bin/chromium'} if Path('/usr/bin/chromium').exists() else {}),args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
  mobile=browser.new_context(viewport={'width':360,'height':780},device_scale_factor=1,is_mobile=True,has_touch=True)
@@ -34,7 +39,7 @@ with sync_playwright() as p:
  assert page.locator('#tone option').count()==5
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.6').is_visible()
+ assert page.get_by_text('Version 3.7').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
@@ -66,10 +71,12 @@ with sync_playwright() as p:
  }''')
  print('ANIMATION transforms:',samples)
  assert samples['a']!=samples['b'],samples
+ assert '0.91' in samples['a'] and '1.105' in samples['b'],samples
  # screenshot skipped in CI
  page.locator('#pauseResume').click()
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Reprendre'
  assert page.locator('#pauseResume').locator('.play-symbol').is_visible()
+ assert page.locator('#stateText').is_hidden()
  page.locator('#pauseResume').click()
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Pause'
  page.locator('#stop').click()

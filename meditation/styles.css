@@ -63,12 +63,12 @@
     .orb-wrap.is-breathing .orb { animation: quiet-pulse 14s ease-in-out infinite; }
     .orb-wrap.is-breathing::before { animation: quiet-halo 14s ease-in-out infinite; }
     @keyframes quiet-pulse {
-      0%, 100% { transform: scale(.955); opacity: .77; }
-      50% { transform: scale(1.065); opacity: 1; }
+      0%, 100% { transform: scale(.91); opacity: .74; }
+      50% { transform: scale(1.105); opacity: 1; }
     }
     @keyframes quiet-halo {
-      0%, 100% { transform: scale(.90); opacity: .37; }
-      50% { transform: scale(1.10); opacity: 1; }
+      0%, 100% { transform: scale(.85); opacity: .35; }
+      50% { transform: scale(1.17); opacity: 1; }
     }
     .center-symbol { width: 30px; height: 30px; border: 1px solid rgba(226, 207, 182, .44); border-radius: 50%; position: relative; }
     .center-symbol::after { content: ""; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #c9aa86; left: 50%; top: 50%; transform: translate(-50%, -50%); }
@@ -129,6 +129,48 @@
     .volume-line input { width: 92px; height: 4px; accent-color: #c5a98b; cursor: pointer; }
     .text-button { border: 0; background: none; padding: 9px 0; color: #dbbf9e; font-size: 12px; }
     .install-button { margin-top: 17px; width: 100%; border: 1px solid rgba(227, 201, 171, .3); padding: 13px 16px; border-radius: 11px; background: transparent; color: #e8d8c4; font-size: 13px; }
+
+    /* Accueil : une seule signature se déplace du centre jusqu'à sa place définitive. */
+    body.is-opening .brand { opacity: 0; transform-origin: center; }
+    body.is-opening .quiet-center,
+    body.is-opening .controls,
+    body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
+    body.is-opening.intro-go .brand {
+      animation: intro-signature 2.05s cubic-bezier(.44, 0, .16, 1) both;
+    }
+    body.is-opening.intro-go .quiet-center {
+      animation: intro-reveal 1.02s ease-out .96s both;
+    }
+    body.is-opening.intro-go .controls,
+    body.is-opening.intro-go .topbar .icon-button {
+      animation: intro-reveal .74s ease-out 1.46s both;
+    }
+    @keyframes intro-signature {
+      0% { opacity: 0; transform: translate3d(var(--intro-x), var(--intro-y), 0) scale(1.6); }
+      12%, 36% { opacity: 1; transform: translate3d(var(--intro-x), var(--intro-y), 0) scale(1.6); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes intro-reveal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    /* Deux ondes fines, comme après une goutte dans l'eau. Uniquement au démarrage. */
+    .visual::before, .visual::after {
+      content: ""; position: absolute; inset: 0; border-radius: 50%;
+      border: 1px solid rgba(218, 188, 155, .24);
+      pointer-events: none; opacity: 0;
+    }
+    body.is-opening.intro-go .visual::before {
+      animation: intro-ripple 1.3s ease-out 1.12s both;
+    }
+    body.is-opening.intro-go .visual::after {
+      animation: intro-ripple 1.3s ease-out 1.39s both;
+    }
+    @keyframes intro-ripple {
+      0% { opacity: 0; transform: scale(.68); }
+      26% { opacity: .44; }
+      100% { opacity: 0; transform: scale(1.28); }
+    }
     @media (max-height: 640px) { .quiet-center { min-height: 195px; } .orb-wrap { width: clamp(155px, 31svh, 220px); } .controls, .running-controls { margin-bottom: 10px; } }
     @media (max-width: 360px) { .page { padding-left: 18px; padding-right: 18px; } .choices { gap: 5px; } .choice { font-size: 12px; } }
     @media (prefers-reduced-motion: reduce) {

@@ -315,7 +315,7 @@
           settling: ['RETOUR', 'Retour en douceur', 'Deux minutes de calme.']
         };
         [el.status.textContent, el.title.textContent, el.description.textContent] = copy[s];
-        const visibleState = { paused: 'En pause', settling: 'Retour en douceur' }[s];
+        const visibleState = { settling: 'Retour en douceur' }[s];
         el.stateText.textContent = visibleState || '';
         el.stateText.classList.toggle('hidden', !visibleState);
         updateClock();
@@ -555,8 +555,33 @@
         });
       }
 
+
+      function showOpening() {
+        const body = document.body;
+        const prefersLessMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // La reprise d'une séance et l'accessibilité priment sur l'animation d'accueil.
+        if (phase !== 'idle' || prefersLessMotion) {
+          body.classList.remove('is-opening');
+          return;
+        }
+        const brand = document.querySelector('.brand');
+        const rect = brand.getBoundingClientRect();
+        // Position finale mesurée : aucun saut sur petit écran, ordinateur ou zoom.
+        const shiftX = window.innerWidth / 2 - (rect.left + rect.width / 2);
+        const shiftY = window.innerHeight / 2 - (rect.top + rect.height / 2);
+        brand.style.setProperty('--intro-x', shiftX + 'px');
+        brand.style.setProperty('--intro-y', shiftY + 'px');
+        body.classList.add('intro-go');
+        window.setTimeout(() => {
+          body.classList.remove('is-opening', 'intro-go');
+          brand.style.removeProperty('--intro-x');
+          brand.style.removeProperty('--intro-y');
+        }, 2250);
+      }
+
       recoverSession();
       renderSetup();
       render();
       document.documentElement.dataset.silenceReady = 'true';
+      showOpening();
     })();

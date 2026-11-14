@@ -25,7 +25,23 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.6').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.7').is_hidden() # settings not open
+ assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
+ assert page.locator('.brand').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='intro-signature')"), "Brand must travel from center to header"
+ assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
+ intro_geometry=page.evaluate("""() => {
+   const brand=document.querySelector('.brand');
+   const animation=brand.getAnimations().find(a=>a.animationName==='intro-signature');
+   animation.currentTime=550;
+   const center=brand.getBoundingClientRect();
+   animation.currentTime=1950;
+   const end=brand.getBoundingClientRect();
+   return {cx:center.x+center.width/2,cy:center.y+center.height/2,endX:end.x};
+ }""")
+ assert abs(intro_geometry['cx'] - 180)<3, intro_geometry
+ assert abs(intro_geometry['cy'] - 390)<3, intro_geometry
+ assert intro_geometry['endX']<80,intro_geometry
+ page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
  assert page.locator('#tone option').count()==5
  # screenshot skipped in CI
@@ -69,10 +85,12 @@ with sync_playwright() as p:
  }''')
  print('ANIMATION transforms:',samples)
  assert samples['a']!=samples['b'],samples
+ assert '0.91' in samples['a'] and '1.105' in samples['b'],samples
  # screenshot skipped in CI
  page.locator('#pauseResume').click()
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Reprendre'
  assert page.locator('#pauseResume').locator('.play-symbol').is_visible()
+ assert page.locator('#stateText').is_hidden(), 'Do not show En pause next to Play control'
  page.locator('#pauseResume').click()
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Pause'
  page.locator('#stop').click()
@@ -107,7 +125,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.6.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.7.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')
@@ -127,6 +145,7 @@ with sync_playwright() as p:
  reduced=browser.new_context(viewport={'width':360,'height':780},reduced_motion='reduce',service_workers='block')
  rpage=reduced.new_page()
  rpage.goto(f'http://127.0.0.1:{PORT}/meditation/')
+ assert not rpage.locator('body').evaluate("(el)=>el.classList.contains('is-opening')"), 'Reduced motion should skip intro'
  rpage.locator('#settingsButton').click()
  rpage.locator('#delay').uncheck()
  rpage.locator('#closeSettings').click()
