@@ -6,8 +6,6 @@ on:
     paths:
       - "meditation/**"
       - "tests/**"
-      - ".github/workflows/ovh.yml"
-      - ".github/scripts/deploy_ovh.py"
   workflow_dispatch:
     inputs:
       mode:
