@@ -56,7 +56,7 @@ for clip in CLIPS:
         "acompressor=threshold=-24dB:ratio=1.3:attack=35:release=280,"
         "afade=t=in:st=0:d=0.23,"
         f"afade=t=out:st={duration - 0.39:.2f}:d=0.39,"
-        "loudnorm=I=-23:TP=-10:LRA=7"
+        "loudnorm=I=-22:TP=-9:LRA=7,volume=-2dB"
     )
     subprocess.run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
