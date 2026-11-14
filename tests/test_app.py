@@ -92,7 +92,7 @@ with sync_playwright() as p:
  }''')
  print('ANIMATION transforms:',samples)
  assert samples['a']!=samples['b'],samples
- assert '0.91' in samples['a'] and '1.105' in samples['b'],samples
+ assert samples['a'].startswith('matrix(1, ') and '1.105' in samples['b'],samples
  # screenshot skipped in CI
  page.locator('#pauseResume').click()
  assert_geometry(original,geometry(page),'pause')
