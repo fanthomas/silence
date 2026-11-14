@@ -221,7 +221,7 @@ with sync_playwright() as p:
  rpage.locator('#delay').uncheck()
  rpage.locator('#closeSettings').click()
  rpage.locator('#start').click()
- animation=rpage.locator('.orb').evaluate('(el) => getComputedStyle(el).animationName')
+ animation=rpage.locator('.field-svg').evaluate('(el) => getComputedStyle(el).animationName')
  assert animation=='none',animation
  print('REDUCED MOTION: OK')
  reduced.close()

@@ -181,7 +181,7 @@ with sync_playwright() as p:
  rp=reduced.new_page(); rp.on('pageerror',lambda error: errors.append('reduced: '+str(error)))
  init(rp)
  rp.locator('#settingsButton').click(); rp.locator('#delay').uncheck(); rp.locator('#closeSettings').click(); rp.locator('#start').click()
- anim=rp.locator('.orb').evaluate('(el) => getComputedStyle(el).animationName')
+ anim=rp.locator('.field-svg').evaluate('(el) => getComputedStyle(el).animationName')
  assert anim=='none',anim
  print('REDUCED MOTION: OK')
  reduced.close()
