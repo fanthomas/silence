@@ -29,7 +29,7 @@
       padding: max(28px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom));
       display: flex; flex-direction: column; align-items: center;
     }
-    .topbar { display: flex; width: 100%; align-items: center; justify-content: space-between; }
+    .topbar { display: flex; flex: 0 0 48px; height: 48px; width: 100%; align-items: center; justify-content: space-between; }
     .brand { color: #e9dfd1; font: 400 27px/1.2 Georgia, "Times New Roman", serif; letter-spacing: -.055em; user-select: none; }
     .brand-dot { color: #c19c77; }
     .icon-button {
@@ -63,18 +63,25 @@
     .orb-wrap.is-breathing .orb { animation: quiet-pulse 14s ease-in-out infinite; }
     .orb-wrap.is-breathing::before { animation: quiet-halo 14s ease-in-out infinite; }
     @keyframes quiet-pulse {
-      0%, 100% { transform: scale(.91); opacity: .74; }
+      0%, 100% { transform: scale(1); opacity: .88; }
       50% { transform: scale(1.105); opacity: 1; }
     }
     @keyframes quiet-halo {
-      0%, 100% { transform: scale(.85); opacity: .35; }
+      0%, 100% { transform: scale(1); opacity: .45; }
       50% { transform: scale(1.17); opacity: 1; }
     }
     .center-symbol { width: 30px; height: 30px; border: 1px solid rgba(226, 207, 182, .44); border-radius: 50%; position: relative; }
     .center-symbol::after { content: ""; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #c9aa86; left: 50%; top: 50%; transform: translate(-50%, -50%); }
     .inside-clock { position: absolute; color: #e9dacc; font-size: clamp(33px, 9vw, 44px); font-weight: 300; letter-spacing: .045em; font-variant-numeric: tabular-nums; }
     .state-text { position: absolute; bottom: -40px; white-space: nowrap; font-size: 12px; font-weight: 400; letter-spacing: .02em; color: #ad9d8b; }
-    .controls, .running-controls { width: 100%; max-width: 390px; margin-bottom: clamp(18px, 5vh, 46px); }
+    /* Les commandes gardent une empreinte fixe : le cercle et le logo ne bougent pas. */
+    .control-stage {
+      width: 100%; max-width: 390px; flex: 0 0 142px; min-height: 142px;
+      display: grid; grid-template-columns: minmax(0, 1fr); align-items: end;
+      margin-bottom: clamp(18px, 5vh, 46px);
+    }
+    .controls, .running-controls { grid-area: 1 / 1; width: 100%; max-width: 390px; margin: 0; }
+    .control-stage .secondary-actions { margin-top: 0; }
     .choices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
     .choice { min-width: 0; height: 47px; padding: 0 3px; color: #b7aea3; border: 1px solid var(--line); border-radius: 12px; background: rgba(235, 220, 199, .025); font-size: 13px; font-weight: 450; transition: background .18s, border-color .18s, color .18s; }
     .choice:hover { background: rgba(241, 215, 184, .065); }
@@ -97,10 +104,20 @@
     .transport-button.is-paused .pause-symbol { display: none; }
     .transport-button.is-paused .play-symbol { display: block; }
     .secondary-actions .transport-stop { color: #baaa98; background: rgba(235, 220, 199, .03); }
-    .audio-recover { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; max-width: 360px; margin: -10px auto 14px; text-align: center; }
+    .audio-recover {
+      position: fixed; z-index: 6; left: 50%; bottom: max(130px, env(safe-area-inset-bottom));
+      transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;
+      gap: 8px; width: min(360px, calc(100% - 32px)); padding: 13px;
+      background: #25211d; border: 1px solid var(--line); border-radius: 14px;
+      text-align: center;
+    }
     .audio-recover p { margin: 0; font-size: 12px; line-height: 1.5; color: #d7b69b; }
     .audio-recover button { padding: 9px 16px; border-radius: 9px; border: 1px solid #8e7966; background: transparent; color: #e5ceb8; font-size: 12px; }
-    .notice { max-width: 400px; margin: -5px auto 8px; text-align: center; font-size: 11px; color: #c8ab8c; line-height: 1.5; }
+    .notice {
+      position: fixed; z-index: 7; left: 50%; bottom: max(8px, env(safe-area-inset-bottom));
+      transform: translateX(-50%); width: min(400px, calc(100% - 28px)); margin: 0;
+      text-align: center; font-size: 11px; color: #c8ab8c; line-height: 1.5;
+    }
     .notice:empty { display: none; }
     .veil { position: fixed; inset: 0; z-index: 15; display: grid; place-items: end center; padding: 0 0 max(46px, env(safe-area-inset-bottom)); width: 100%; border: none; background: #070706; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 1.6s, visibility 1.6s; }
     .veil.active { opacity: 1; visibility: visible; pointer-events: auto; }
@@ -130,55 +147,58 @@
     .text-button { border: 0; background: none; padding: 9px 0; color: #dbbf9e; font-size: 12px; }
     .install-button { margin-top: 17px; width: 100%; border: 1px solid rgba(227, 201, 171, .3); padding: 13px 16px; border-radius: 11px; background: transparent; color: #e8d8c4; font-size: 13px; }
 
-    /* Accueil : une seule signature se déplace du centre jusqu'à sa place définitive. */
-    body.is-opening .brand { opacity: 0; transform-origin: center; }
-    body.is-opening .quiet-center,
-    body.is-opening .controls,
-    body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
-    body.is-opening.intro-go .brand {
-      animation: intro-signature 2.05s cubic-bezier(.44, 0, .16, 1) both;
+    /* Aucune image sous le mot d'accueil : silence. est visible au centre dès le premier rendu. */
+    .opening-overlay {
+      position: fixed; inset: 0; z-index: 20; overflow: hidden;
+      background: transparent; display: grid; place-items: center;
     }
-    body.is-opening.intro-go .quiet-center {
-      animation: intro-reveal 1.02s ease-out .96s both;
+    .opening-word {
+      position: absolute; top: 50%; left: 50%; z-index: 1;
+      color: #e9dfd1; font: 400 27px/1.2 Georgia, "Times New Roman", serif;
+      letter-spacing: -.055em; white-space: nowrap; user-select: none;
+      transform: translate(-50%, -50%) scale(1.6);
     }
-    body.is-opening.intro-go .controls,
-    body.is-opening.intro-go .topbar .icon-button {
-      animation: intro-reveal .74s ease-out 1.46s both;
+    body:not(.is-opening) .opening-overlay { display: none; }
+    body.is-opening .brand { visibility: hidden; }
+    body.is-opening.intro-go .opening-word {
+      animation: opening-word 2.1s cubic-bezier(.44, 0, .16, 1) both;
     }
-    @keyframes intro-signature {
-      0% { opacity: 0; transform: translate3d(var(--intro-x), var(--intro-y), 0) scale(1.6); }
-      12%, 36% { opacity: 1; transform: translate3d(var(--intro-x), var(--intro-y), 0) scale(1.6); }
-      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    /* Le mot reste visible pendant que le fond se retire, sans flash ni changement de police. */
+    .opening-overlay::before {
+      content: ""; position: absolute; inset: 0; background: #151411;
     }
-    @keyframes intro-reveal {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    body.is-opening.intro-go .opening-overlay::before {
+      animation: opening-fade .65s ease-out 1.53s both;
     }
-    /* Deux ondes fines, comme après une goutte dans l'eau. Uniquement au démarrage. */
+    @keyframes opening-word {
+      0%, 27% { transform: translate(-50%, -50%) scale(1.6); }
+      100% {
+        transform: translate(calc(-50% + var(--intro-dx)), calc(-50% + var(--intro-dy))) scale(1);
+      }
+    }
+    @keyframes opening-fade { to { opacity: 0; } }
     .visual::before, .visual::after {
       content: ""; position: absolute; inset: 0; border-radius: 50%;
       border: 1px solid rgba(218, 188, 155, .24);
       pointer-events: none; opacity: 0;
     }
-    body.is-opening.intro-go .visual::before {
-      animation: intro-ripple 1.3s ease-out 1.12s both;
-    }
-    body.is-opening.intro-go .visual::after {
-      animation: intro-ripple 1.3s ease-out 1.39s both;
-    }
+    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.27s both; }
+    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.5s both; }
     @keyframes intro-ripple {
       0% { opacity: 0; transform: scale(.68); }
       26% { opacity: .44; }
       100% { opacity: 0; transform: scale(1.28); }
     }
-    @media (max-height: 640px) { .quiet-center { min-height: 195px; } .orb-wrap { width: clamp(155px, 31svh, 220px); } .controls, .running-controls { margin-bottom: 10px; } }
+    @media (max-height: 640px) { .quiet-center { min-height: 195px; } .orb-wrap { width: clamp(155px, 31svh, 220px); } .control-stage { margin-bottom: 10px; } }
     @media (max-width: 360px) { .page { padding-left: 18px; padding-right: 18px; } .choices { gap: 5px; } .choice { font-size: 12px; } }
     @media (prefers-reduced-motion: reduce) {
+      .opening-overlay { display: none !important; }
+      body.is-opening .brand { visibility: visible; }
       *, *::before, *::after { transition-duration: 0s !important; animation: none !important; }
     }
 
 /* Le message d'amorçage n'apparaît qu'en cas d'échec de chargement du JavaScript. */
-.boot-alert { position: fixed; z-index: 5; left: 12px; right: 12px; bottom: 12px; border: 1px solid #9f6959; background: #392923; color: #f8e4d6; padding: 16px; border-radius: 12px; font-size: 13px; line-height: 1.5; visibility: hidden; animation: show-boot-alert 0s 3s forwards; }
+.boot-alert { position: fixed; z-index: 30; left: 12px; right: 12px; bottom: 12px; border: 1px solid #9f6959; background: #392923; color: #f8e4d6; padding: 16px; border-radius: 12px; font-size: 13px; line-height: 1.5; visibility: hidden; animation: show-boot-alert 0s 3s forwards; }
 @keyframes show-boot-alert { to { visibility: visible; } }
 html[data-silence-ready="true"] .boot-alert { display:none; }
 .sound-status { margin: -1px 0 7px; text-align: right; color: #d4b99c; font-size: 12px; min-height: 0; }

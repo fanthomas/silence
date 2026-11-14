@@ -2,6 +2,15 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.8.0] - 2026-11-14
+
+- Même emplacement et même taille du cercle et du logo avant, pendant et après la séance : espace de commandes stabilisé.
+- « silence. » seul visible dès la première image, puis transition douce vers l'en-tête, le cercle apparaissant ensuite.
+- Retour silencieux de 2 minutes et bouton « Revenir doucement » supprimés : les durées fixes se terminent directement.
+- Pépiement aigu supprimé : Bol feutré et Bois doux conservés sans modification.
+- Messages audio hors flux pour éviter les déplacements momentanés au démarrage.
+- Tests de stabilité de la géométrie et de l'ouverture renforcés.
+
 ## [3.7.1] - 2026-11-14
 
 - Sons de nature simplifiés : un seul pépiement naturel de 0,41 seconde, sans ambiance continue.

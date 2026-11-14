@@ -14,9 +14,8 @@ Avec **silence.**, tu choisis une durée ou tu médites librement. Après **10 m
 
 - **Libre**, avec un repère à 10 minutes et un second facultatif à 15 minutes.
 - **10, 12, 15 ou 20 minutes**, pour des séances à durée fixe.
-- **Trois repères brefs** : bol feutré, bois doux et un petit pépiement, sans ambiance sonore continue.
+- **Deux repères discrets** : Bol feutré et Bois doux, sans musique ni ambiance sonore.
 - **Un cercle vivant**, qui évolue lentement sans imposer de rythme respiratoire.
-- **Un retour en douceur**, silencieux et sans interruption brusque.
 
 Le temps reste masqué. Les réglages restent discrets.
 
@@ -26,5 +25,5 @@ Une application web installable sur l’écran d’accueil et utilisable hors co
 
 <div align="center">
   <p><strong><a href="https://mebius.cc/meditation/">Prendre un moment pour soi</a></strong></p>
-  <sub><a href="LICENSE">AGPL-3.0</a> · <a href="AUDIO-SOURCES.md">Sources des sons naturels</a></sub>
+  <sub><a href="LICENSE">AGPL-3.0</a></sub>
 </div>

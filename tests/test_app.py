@@ -16,6 +16,16 @@ def serve():
  server.serve_forever()
 th=threading.Thread(target=serve,daemon=True); th.start()
 errors=[]
+def geometry(page):
+ return page.evaluate("""() => {
+  const bounds = selector => { const r=document.querySelector(selector).getBoundingClientRect(); return [r.x,r.y,r.width,r.height]; };
+  return [bounds('.brand'),bounds('#peek')];
+ }""")
+def assert_geometry(before,after,action):
+ for a,b in zip(before,after):
+  for x,y in zip(a,b):
+   assert abs(x-y)<1.3, f'{action}: layout shifted {before} => {after}'
+
 
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,**({'executable_path': '/usr/bin/chromium'} if Path('/usr/bin/chromium').exists() else {}),args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
@@ -25,14 +35,14 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.7.1').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.8').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
- assert page.locator('.brand').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='intro-signature')"), "Brand must travel from center to header"
+ assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
  intro_geometry=page.evaluate("""() => {
-   const brand=document.querySelector('.brand');
-   const animation=brand.getAnimations().find(a=>a.animationName==='intro-signature');
-   animation.currentTime=550;
+   const brand=document.querySelector('.opening-word');
+   const animation=brand.getAnimations().find(a=>a.animationName==='opening-word');
+   animation.currentTime=420;
    const center=brand.getBoundingClientRect();
    animation.currentTime=1950;
    const end=brand.getBoundingClientRect();
@@ -43,10 +53,10 @@ with sync_playwright() as p:
  assert intro_geometry['endX']<80,intro_geometry
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==3
+ assert page.locator('#tone option').count()==2
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.7.1').is_visible()
+ assert page.get_by_text('Version 3.8').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -58,25 +68,10 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Bois')",timeout=5000)
  print('SOUND bambou:',page.locator('#soundStatus').text_content())
- for tone,label in [('pepiement','Pépiement')]:
-  page.locator('#tone').select_option(tone)
-  page.locator('#testSound').click()
-  page.wait_for_function("(label) => document.querySelector('#soundStatus').textContent.includes('Écoute : ' + label)",arg=label,timeout=8000)
-  print('SOUND',tone,page.locator('#soundStatus').text_content())
- # The new nature cue must be one brief chirp, never a continuous soundscape.
- cue_seconds=page.evaluate("""async () => {
-  const r=await fetch('./sounds/pepiement.mp3');
-  if(!r.ok) throw Error('Missing chirp audio');
-  const ctx=new AudioContext();
-  const buffer=await ctx.decodeAudioData(await r.arrayBuffer());
-  const duration=buffer.duration;
-  await ctx.close();
-  return duration;
- }""")
- assert .30 <= cue_seconds <= .46, cue_seconds
- print('NATURE CUE: single brief chirp',cue_seconds)
  page.locator('#closeSettings').click()
+ original=geometry(page)
  page.locator('#start').click()
+ assert_geometry(original,geometry(page),'start')
  assert page.locator('#setup').is_hidden()
  assert page.locator('#activeControls').is_visible()
  assert page.locator('#stop').is_visible()
@@ -100,23 +95,23 @@ with sync_playwright() as p:
  assert '0.91' in samples['a'] and '1.105' in samples['b'],samples
  # screenshot skipped in CI
  page.locator('#pauseResume').click()
+ assert_geometry(original,geometry(page),'pause')
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Reprendre'
  assert page.locator('#pauseResume').locator('.play-symbol').is_visible()
  assert page.locator('#stateText').is_hidden(), 'Do not show En pause next to Play control'
  page.locator('#pauseResume').click()
+ assert_geometry(original,geometry(page),'resume')
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Pause'
  page.locator('#stop').click()
+ assert_geometry(original,geometry(page),'stop')
  assert page.locator('#setup').is_visible(),'Stop should return to duration picker'
  assert page.locator('#activeControls').is_hidden()
  assert page.locator('#stateText').is_hidden()
  print('MANUAL STOP -> duration choices: OK')
- # 2nd cycle test also finishing via button
- page.locator('#start').click()
- page.locator('#gentleEnd').click()
- assert page.locator('#settlingControls').is_visible()
- page.locator('#finishNow').click()
- assert page.locator('#setup').is_visible()
- print('GENTLE END -> Stop -> setup: OK')
+ # Retour silencieux supprimé, aucun contrôle supplémentaire à afficher.
+ assert page.locator('#gentleEnd').count()==0
+ assert page.locator('#settle').count()==0
+ print('SILENT RETURN REMOVED: OK')
  # toggles mutually exclusive
  page.locator('#settingsButton').click()
  page.locator('#dark').check()
@@ -137,7 +132,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.7.1' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.8.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

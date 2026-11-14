@@ -12,9 +12,12 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <title>silence.</title>
-  <link rel="stylesheet" href="./styles.css?v=3.7.1">
+  <link rel="stylesheet" href="./styles.css?v=3.8.0">
 </head>
 <body class="is-opening">
+  <div class="opening-overlay" aria-hidden="true">
+    <span class="opening-word">silence<span class="brand-dot">.</span></span>
+  </div>
   <div class="page">
     <header class="topbar">
       <div class="brand">silence<span class="brand-dot" aria-hidden="true">.</span></div>
@@ -36,6 +39,7 @@
           <span id="stateText" class="state-text hidden"></span>
         </div>
       </div>
+      <div class="control-stage">
       <section class="controls" id="setup" aria-label="Choisir la durée">
         <div class="choices" role="group" aria-label="Durée de méditation">
           <button class="choice" id="modeFree" type="button" aria-pressed="true" aria-label="Libre, repère à dix minutes">Libre</button>
@@ -47,7 +51,6 @@
         <button class="cta" id="start" type="button">Commencer</button>
       </section>
       <section class="running-controls hidden" id="activeControls" aria-label="Contrôles de la séance">
-        <button id="gentleEnd" class="secondary-cta" type="button">Revenir doucement</button>
         <div class="secondary-actions">
           <button type="button" id="pauseResume" class="transport-button" aria-label="Pause" title="Pause">
             <svg class="pause-symbol" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>
@@ -58,9 +61,7 @@
           </button>
         </div>
       </section>
-      <section class="running-controls hidden" id="settlingControls">
-        <button id="finishNow" class="secondary-cta" type="button">Terminer</button>
-      </section>
+      </div>
       <div class="audio-recover hidden" id="audioRecover">
         <p id="audioRecoverText">Les sons sont suspendus.</p>
         <button id="rearm" type="button">Réactiver les sons</button>
@@ -81,10 +82,6 @@
         <span class="setting-label" id="markerLabel">Repère à 15 minutes</span>
         <label class="switch" aria-label="Activer le repère supplémentaire"><input id="marker" type="checkbox" checked><span class="switch-track"></span></label>
       </div>
-      <div class="setting hidden" id="settleRow">
-        <span class="setting-label">Retour silencieux · 2 min</span>
-        <label class="switch" aria-label="Activer le retour en douceur"><input id="settle" type="checkbox" checked><span class="switch-track"></span></label>
-      </div>
       <div class="setting">
         <span class="setting-label">Départ différé · 10 s</span>
         <label class="switch" aria-label="Démarrer après dix secondes"><input id="delay" type="checkbox" checked><span class="switch-track"></span></label>
@@ -94,7 +91,6 @@
         <select id="tone" class="select">
           <option value="bol">Bol feutré</option>
           <option value="bambou">Bois doux</option>
-          <option value="pepiement">Pépiement</option>
         </select>
       </div>
       <div class="setting">
@@ -116,10 +112,10 @@
       </div>
     </div>
     <button id="installButton" class="install-button hidden" type="button">Installer silence.</button>
-    <p class="version">Version 3.7.1</p>
+    <p class="version">Version 3.8</p>
   </dialog>
   <button type="button" id="veil" class="veil" aria-label="Afficher les commandes"><span class="veil-dot" aria-hidden="true"></span></button>
   <p class="boot-alert" role="alert">L’application n’a pas démarré. Vérifie que <code>app.js</code> est bien sur ton hébergement, puis recharge la page.</p>
-  <script src="./app.js?v=3.7.1" defer></script>
+  <script src="./app.js?v=3.8.0" defer></script>
 </body>
 </html>

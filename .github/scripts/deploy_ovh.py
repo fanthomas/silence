@@ -16,7 +16,6 @@ FILES = (
     "manifest.webmanifest",
     "icons/icon-192.png",
     "icons/icon-512.png",
-    "sounds/pepiement.mp3",
 )
 mode = sys.argv[1] if len(sys.argv) > 1 else "verify"
 if mode not in ("verify", "deploy"):

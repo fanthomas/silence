@@ -9,6 +9,16 @@ html=re.sub(r'<script src=".*?" defer></script>', '', html)
 css=(files/'styles.css').read_text()
 js=(files/'app.js').read_text()
 errors=[]
+def geometry(page):
+ return page.evaluate("""() => {
+  const bounds = selector => { const r=document.querySelector(selector).getBoundingClientRect(); return [r.x,r.y,r.width,r.height]; };
+  return [bounds('.brand'),bounds('#peek')];
+ }""")
+def assert_geometry(before,after,action):
+ for a,b in zip(before,after):
+  for x,y in zip(a,b):
+   assert abs(x-y)<1.3, f'{action}: layout shifted {before} => {after}'
+
 
 def init(page, stored=None):
  page.set_content(html,wait_until='domcontentloaded')
@@ -26,7 +36,7 @@ def init(page, stored=None):
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
  if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
   assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')")
-  assert page.locator('.brand').evaluate("(el)=>el.getAnimations().some(a=>a.animationName==='intro-signature')")
+  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(a=>a.animationName==='opening-word')")
   assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='intro-ripple'")
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
 with sync_playwright() as p:
@@ -36,10 +46,10 @@ with sync_playwright() as p:
  page.on('pageerror',lambda error: errors.append(str(error)))
  init(page)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==3
+ assert page.locator('#tone option').count()==2
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.7.1').is_visible()
+ assert page.get_by_text('Version 3.8').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
@@ -51,7 +61,9 @@ with sync_playwright() as p:
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Bois')",timeout=8000)
  print('SOUND bambou:',page.locator('#soundStatus').text_content())
  page.locator('#closeSettings').click()
+ original=geometry(page)
  page.locator('#start').click()
+ assert_geometry(original,geometry(page),'start')
  assert page.locator('#setup').is_hidden()
  assert page.locator('#activeControls').is_visible()
  assert page.locator('#stop').is_visible()
@@ -74,22 +86,22 @@ with sync_playwright() as p:
  assert '0.91' in samples['a'] and '1.105' in samples['b'],samples
  # screenshot skipped in CI
  page.locator('#pauseResume').click()
+ assert_geometry(original,geometry(page),'pause')
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Reprendre'
  assert page.locator('#pauseResume').locator('.play-symbol').is_visible()
  assert page.locator('#stateText').is_hidden()
  page.locator('#pauseResume').click()
+ assert_geometry(original,geometry(page),'resume')
  assert page.locator('#pauseResume').get_attribute('aria-label')=='Pause'
  page.locator('#stop').click()
+ assert_geometry(original,geometry(page),'stop')
  assert page.locator('#setup').is_visible(), 'Stop should return to duration picker'
  assert page.locator('#activeControls').is_hidden()
  assert page.locator('#stateText').is_hidden()
  print('MANUAL STOP -> setup: OK')
- page.locator('#start').click()
- page.locator('#gentleEnd').click()
- assert page.locator('#settlingControls').is_visible()
- page.locator('#finishNow').click()
- assert page.locator('#setup').is_visible()
- print('GENTLE END -> Terminer -> setup: OK')
+ assert page.locator('#gentleEnd').count()==0
+ assert page.locator('#settle').count()==0
+ print('SILENT RETURN REMOVED: OK')
  page.locator('#settingsButton').click()
  page.locator('#dark').check()
  assert not page.locator('#motion').is_checked()
@@ -100,7 +112,6 @@ with sync_playwright() as p:
  # Simulated time for fixed 10-min automatic return
  page.locator('.duration[data-minutes="10"]').click()
  page.locator('#settingsButton').click()
- page.locator('#settle').uncheck()
  page.locator('#closeSettings').click()
  page.clock.install()
  page.locator('#start').click()
