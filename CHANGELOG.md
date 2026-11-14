@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.6.0] - 2026-11-14
+
+- Trois nouveaux repères extraits de véritables enregistrements naturels du domaine public : Forêt, Oiseau et Sous-bois.
+- Sons courts et fondus, sans boucle musicale.
+- Bol feutré et Bois doux conservés à l'identique.
+- Cinq choix sonores disponibles aussi hors connexion.
+- README simplifié, centré sur l'utilisation.
+
 ## [3.5.0] - 2026-11-14
 
 Première version suivie par une release GitHub.

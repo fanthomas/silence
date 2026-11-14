@@ -25,12 +25,12 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.5').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.6').is_hidden() # settings not open
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==2
+ assert page.locator('#tone option').count()==5
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.5').is_visible()
+ assert page.get_by_text('Version 3.6').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -42,6 +42,11 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Bois')",timeout=5000)
  print('SOUND bambou:',page.locator('#soundStatus').text_content())
+ for tone,label in [('foret','Forêt'),('oiseau','Oiseau'),('sousbois','Sous-bois')]:
+  page.locator('#tone').select_option(tone)
+  page.locator('#testSound').click()
+  page.wait_for_function("(label) => document.querySelector('#soundStatus').textContent.includes('Écoute : ' + label)",arg=label,timeout=8000)
+  print('SOUND',tone,page.locator('#soundStatus').text_content())
  page.locator('#closeSettings').click()
  page.locator('#start').click()
  assert page.locator('#setup').is_hidden()
@@ -102,7 +107,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.5.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.6.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

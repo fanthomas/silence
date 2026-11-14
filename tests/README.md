@@ -1,6 +1,6 @@
 # Tests de silence.
 
-Les deux suites Playwright vérifient les contrôles, les deux sons, l'animation, le retour à l'accueil et la gestion de la réduction des animations.
+Les deux suites Playwright vérifient les contrôles, les cinq sons, l'animation, le retour à l'accueil et la gestion de la réduction des animations.
 
 - `test_app_dom.py` : interactions sur le DOM avec le CSS et JavaScript réels.
 - `test_app.py` : navigation HTTP, service worker et fonctionnement hors connexion.
