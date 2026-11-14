@@ -4,15 +4,39 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#151411">
-  <meta name="description" content="silence. Un moment à soi.">
+  <meta name="description" content="silence. Une application de méditation minimaliste. Prends un moment pour toi, avec des repères sonores discrets et sans distraction.">
+  <link rel="canonical" href="https://mebius.cc/meditation/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="silence.">
+  <meta property="og:url" content="https://mebius.cc/meditation/">
+  <meta property="og:title" content="silence. · Un moment à soi.">
+  <meta property="og:description" content="Médite librement, sans surveiller le temps. Des repères doux, un cercle vivant, et le silence.">
+  <meta property="og:image" content="https://mebius.cc/meditation/og-image.jpg">
+  <meta property="og:image:secure_url" content="https://mebius.cc/meditation/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="silence. Un moment à soi. Cercles lumineux sur fond sombre.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="silence. · Un moment à soi.">
+  <meta name="twitter:description" content="Médite librement, sans surveiller le temps. Des repères doux et aucun bruit superflu.">
+  <meta name="twitter:image" content="https://mebius.cc/meditation/og-image.jpg">
+  <meta name="twitter:image:alt" content="silence. Un moment à soi. Cercles lumineux sur fond sombre.">
+  <style>html{overflow-x:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none;width:0}body{margin:0;background:#151411;overflow-x:hidden}</style>
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <title>silence.</title>
-  <link rel="stylesheet" href="./styles.css?v=3.8.0">
+  <link rel="icon" href="./favicon.ico?v=3.9.0" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=3.9.0">
+  <link rel="icon" type="image/png" sizes="48x48" href="./icons/favicon-48.png?v=3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png?v=3.9.0">
+  <meta name="application-name" content="silence.">
+  <title>silence. · Un moment à soi.</title>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"silence.","url":"https://mebius.cc/meditation/","description":"Application de méditation minimaliste, avec repères sonores discrets et fonctionnement hors connexion.","applicationCategory":"LifestyleApplication","operatingSystem":"Web","inLanguage":"fr","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
+  <link rel="stylesheet" href="./styles.css?v=3.9.0">
 </head>
 <body class="is-opening">
   <div class="opening-overlay" aria-hidden="true">
@@ -31,11 +55,11 @@
       <span id="status" class="sr-only" role="status" aria-live="polite">PRÊT</span>
       <div class="quiet-center">
         <div class="visual">
-          <button class="orb-wrap" id="peek" type="button" aria-label="Afficher le temps pendant cinq secondes" disabled>
+          <div class="orb-wrap" id="peek" aria-hidden="true">
             <span class="orb" aria-hidden="true"></span>
             <span class="center-symbol" id="symbol" aria-hidden="true"></span>
             <span class="inside-clock hidden" id="clock" aria-hidden="true">00:00</span>
-          </button>
+          </div>
           <span id="stateText" class="state-text hidden"></span>
         </div>
       </div>
@@ -112,10 +136,10 @@
       </div>
     </div>
     <button id="installButton" class="install-button hidden" type="button">Installer silence.</button>
-    <p class="version">Version 3.8</p>
+    <p class="version">Version 3.9</p>
   </dialog>
   <button type="button" id="veil" class="veil" aria-label="Afficher les commandes"><span class="veil-dot" aria-hidden="true"></span></button>
   <p class="boot-alert" role="alert">L’application n’a pas démarré. Vérifie que <code>app.js</code> est bien sur ton hébergement, puis recharge la page.</p>
-  <script src="./app.js?v=3.8.0" defer></script>
+  <script src="./app.js?v=3.9.0" defer></script>
 </body>
 </html>

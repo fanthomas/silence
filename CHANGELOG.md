@@ -2,6 +2,15 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.9.0] - 2026-11-14
+
+- Cercle rendu purement visuel : aucun clic, aucune ouverture du chronomètre et aucune possibilité de le sélectionner au clavier.
+- Barre de défilement masquée dès le tout premier rendu, sans saut de mise en page.
+- Bol feutré retravaillé par une attaque douce, un filtrage des aigus et une décroissance rapide.
+- Oscillation lente du cercle enrichie d'une onde intérieure et d'un petit point mobile qui s'éloigne puis revient au centre, sans changer le cycle de 14 secondes.
+- Aperçu Open Graph et Twitter (1200 × 630), titres, descriptions, URL canonique et données structurées.
+- Nouvelle favicon contrastée, nouveaux pictogrammes PWA et icône Apple.
+
 ## [3.8.0] - 2026-11-14
 
 - Même emplacement et même taille du cercle et du logo avant, pendant et après la séance : espace de commandes stabilisé.

@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.8').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.9').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -54,9 +54,25 @@ with sync_playwright() as p:
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
  assert page.locator('#tone option').count()==2
+ # Métadonnées de partage et visuels servent de vrais fichiers image.
+ assert page.locator('link[rel="canonical"]').get_attribute('href')=='https://mebius.cc/meditation/'
+ assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg'
+ assert page.locator('meta[property="og:image:width"]').get_attribute('content')=='1200'
+ assert page.locator('meta[property="og:image:height"]').get_attribute('content')=='630'
+ assert page.locator('meta[name="twitter:card"]').get_attribute('content')=='summary_large_image'
+ assert page.locator('script[type="application/ld+json"]').count()==1
+ assert page.locator('html').evaluate("(el)=>getComputedStyle(el).scrollbarWidth==='none'")
+ assert 'scrollbar-width:none' in page.locator('head style').first.inner_text()
+ images=page.evaluate("""async () => {
+   const load = src => new Promise((resolve,reject) => {
+      const img=new Image(); img.onload=()=>resolve([img.naturalWidth,img.naturalHeight]);img.onerror=reject;img.src=src;
+   });
+   return {og:await load('./og-image.jpg'),favicon:await load('./icons/favicon-32.png'),app:await load('./icons/icon-512.png')};
+ }""")
+ assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.8').is_visible()
+ assert page.get_by_text('Version 3.9').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -79,6 +95,17 @@ with sync_playwright() as p:
  assert page.locator('#stop').bounding_box()['width']==68
  assert page.locator('#stop').bounding_box()['height']==68
  assert page.locator('#peek').get_attribute('class').find('is-breathing')>=0
+ # Le cercle n'est ni un bouton, ni une commande : cliquer n'affiche jamais le chronomètre.
+ assert page.locator('#peek').evaluate("(el)=>el.tagName==='DIV' && !el.hasAttribute('tabindex') && getComputedStyle(el).pointerEvents==='none'")
+ assert page.locator('#clock').is_hidden()
+ ring=page.locator('#peek').bounding_box()
+ page.mouse.click(ring['x']+ring['width']/2,ring['y']+ring['height']/2)
+ assert page.locator('#clock').is_hidden(), 'Aucune interaction avec le cercle ne doit dévoiler le temps'
+ # L'onde intérieure et le point central animent une oscillation lente de 14 secondes.
+ assert page.locator('.orb').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='field-wave'")
+ assert page.locator('.center-symbol').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='thought-drift'")
+ assert page.locator('.center-symbol').evaluate("(el)=>getComputedStyle(el,'::after').animationDuration==='14s'")
+ 
  name=page.locator('.orb').evaluate('(el) => getComputedStyle(el).animationName')
  assert name=='quiet-pulse',name
  # Forcer une position intermédiaire de l'animation pour garantir une variation visible réelle
@@ -132,7 +159,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.8.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.9.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

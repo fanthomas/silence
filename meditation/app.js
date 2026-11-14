@@ -30,8 +30,6 @@
       let startAt = 0; // début effectif (après l'installation) en ms epoch
       let elapsedAtPause = 0;
       let lastStage = '';
-      let clockVisibleUntil = 0;
-      let peekTimeout = null;
       let dimTimeout = null;
       let audioContext = null;
       let soundNodes = [];
@@ -154,17 +152,32 @@
         const src = ctx.createBufferSource();
         const gain = ctx.createGain();
         src.buffer = buffer;
-        // Aucune amplification agressive, EQ aiguë, compression ou saturation.
-        // Une onde courte et feutrée, dont la dynamique reste intacte.
         const volume = Math.pow(settings.volume / 100, 1.1);
-        gain.gain.setValueAtTime(Math.min(1, volume * strength), at);
-        src.connect(gain); gain.connect(ctx.destination);
+        const level = Math.min(1, volume * strength);
+        let filter = null;
+        if (settings.tone === 'bol') {
+          // Bol feutré : une attaque douce, des aigus arrondis et un fondu court.
+          filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 1250;
+          filter.Q.value = .55;
+          gain.gain.setValueAtTime(.0001, at);
+          gain.gain.linearRampToValueAtTime(level, at + .035);
+          gain.gain.setTargetAtTime(.0001, at + .035, .125);
+          src.connect(filter);
+          filter.connect(gain);
+        } else {
+          // Bois doux conserve exactement son enveloppe initiale.
+          gain.gain.setValueAtTime(level, at);
+          src.connect(gain);
+        }
+        gain.connect(ctx.destination);
         src.start(at);
         collection.push(src);
         src.addEventListener('ended', () => {
-          try { src.disconnect(); gain.disconnect(); } catch (_) { /* Déconnecté */ }
-          const index=collection.indexOf(src);
-          if (index !== -1) collection.splice(index,1);
+          try { src.disconnect(); filter?.disconnect(); gain.disconnect(); } catch (_) { /* Déconnecté */ }
+          const index = collection.indexOf(src);
+          if (index !== -1) collection.splice(index, 1);
         }, {once:true});
         return true;
       }
@@ -268,11 +281,9 @@
         }, 20_000);
       }
       function updateClock() {
-        const peekActive = ['running', 'paused'].includes(phase) && Date.now() < clockVisibleUntil;
-        el.clock.classList.toggle('hidden', !peekActive);
-        el.symbol.classList.toggle('hidden', peekActive);
-        el.clock.textContent = format(elapsed());
-        el.peek.setAttribute('aria-label', peekActive ? 'Masquer le temps' : 'Afficher le temps pendant cinq secondes');
+        // Le cercle reste contemplatif : aucune action ne révèle le chronomètre.
+        el.clock.classList.add('hidden');
+        el.symbol.classList.remove('hidden');
       }
       function renderSetup() {
         el.modeFree.setAttribute('aria-pressed', String(settings.mode === 'free'));
@@ -296,7 +307,6 @@
         el.setup.classList.toggle('hidden', phase !== 'idle');
         el.settingsButton.classList.toggle('hidden', phase !== 'idle');
         el.activeControls.classList.toggle('hidden', !active);
-        el.peek.disabled = !['running', 'paused'].includes(phase);
         el.peek.classList.toggle('is-breathing', settings.motion && phase === 'running');
         el.pauseResume.classList.toggle('is-paused', phase === 'paused');
         el.pauseResume.setAttribute('aria-label', phase === 'paused' ? 'Reprendre' : 'Pause');
@@ -325,7 +335,7 @@
         else updateClock();
       }
       function beginTicking() { clearInterval(tickTimer); tickTimer = setInterval(tick, 250); }
-      function clearTimers() { clearInterval(tickTimer); tickTimer = null; clearTimeout(peekTimeout); clockVisibleUntil = 0; }
+      function clearTimers() { clearInterval(tickTimer); tickTimer = null; }
       function completeSession() {
         // Fin automatique : retour au choix de durée, sans écran intermédiaire.
         // On laisse jouer le bref repère sonore final déjà programmé.
@@ -469,13 +479,6 @@
       el.start.addEventListener('click', beginSession);
       el.pauseResume.addEventListener('click', () => { if (phase === 'running') pause(); else if (phase === 'paused') resume(); });
       el.stop.addEventListener('click', () => reset());
-      el.peek.addEventListener('click', () => {
-        clockVisibleUntil = Date.now() < clockVisibleUntil ? 0 : Date.now() + 5_000;
-        clearTimeout(peekTimeout);
-        if (clockVisibleUntil) peekTimeout = setTimeout(updateClock, 5_050);
-        updateClock();
-        if (phase === 'running') scheduleDim();
-      });
       el.veil.addEventListener('click', scheduleDim);
       el.rearm.addEventListener('click', () => {
         if (!['running', 'paused'].includes(phase)) return;

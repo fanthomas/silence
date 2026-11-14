@@ -49,7 +49,7 @@ with sync_playwright() as p:
  assert page.locator('#tone option').count()==2
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.8').is_visible()
+ assert page.get_by_text('Version 3.9').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
@@ -71,6 +71,17 @@ with sync_playwright() as p:
  assert page.locator('#stop').bounding_box()['width']==68
  assert page.locator('#stop').bounding_box()['height']==68
  assert page.locator('#peek').get_attribute('class').find('is-breathing')>=0
+ # Le cercle n'est ni un bouton, ni une commande : cliquer n'affiche jamais le chronomètre.
+ assert page.locator('#peek').evaluate("(el)=>el.tagName==='DIV' && !el.hasAttribute('tabindex') && getComputedStyle(el).pointerEvents==='none'")
+ assert page.locator('#clock').is_hidden()
+ ring=page.locator('#peek').bounding_box()
+ page.mouse.click(ring['x']+ring['width']/2,ring['y']+ring['height']/2)
+ assert page.locator('#clock').is_hidden(), 'Aucune interaction avec le cercle ne doit dévoiler le temps'
+ # L'onde intérieure et le point central animent une oscillation lente de 14 secondes.
+ assert page.locator('.orb').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='field-wave'")
+ assert page.locator('.center-symbol').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='thought-drift'")
+ assert page.locator('.center-symbol').evaluate("(el)=>getComputedStyle(el,'::after').animationDuration==='14s'")
+ 
  name=page.locator('.orb').evaluate('(el)=>getComputedStyle(el).animationName')
  assert name=='quiet-pulse',name
  samples=page.evaluate('''() => {

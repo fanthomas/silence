@@ -11,9 +11,10 @@
       -webkit-font-smoothing: antialiased;
     }
     *, *::before, *::after { box-sizing: border-box; }
-    html { min-height: 100%; background: var(--bg); }
+    html { min-height: 100%; background: var(--bg); overflow-x: hidden; scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; width: 0; }
     body {
-      min-height: 100svh; margin: 0; color: var(--text);
+      min-height: 100svh; margin: 0; color: var(--text); overflow-x: hidden;
       background: radial-gradient(ellipse 62% 36% at 50% 49%, rgba(120, 90, 60, .073), transparent 82%), var(--bg);
     }
     button, select, input { font: inherit; }
@@ -46,6 +47,7 @@
     .orb-wrap {
       position: relative; display: grid; place-items: center; width: clamp(210px, 59vw, 284px);
       aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%; background: transparent;
+      pointer-events: none; cursor: default; user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
     .orb-wrap::before {
@@ -58,7 +60,14 @@
       box-shadow: 0 0 95px rgba(135, 97, 61, .05), inset 0 0 55px rgba(213, 168, 122, .028);
       will-change: transform;
     }
-    .orb::after { content: ""; position: absolute; inset: 19px; border: 1px solid rgba(222, 194, 163, .11); border-radius: 50%; }
+     .orb::after { content: ""; position: absolute; inset: 19px; border: 1px solid rgba(222, 194, 163, .16); border-radius: 50%; }
+    /* Onde intérieure en contretemps : émergence puis retour au calme, en 14 secondes. */
+    .orb-wrap.is-breathing .orb::after { animation: field-wave 14s ease-in-out infinite; }
+    @keyframes field-wave {
+      0%, 100% { transform: scale(.94); opacity: .42; }
+      42% { transform: scale(1.04); opacity: .88; }
+      66% { transform: scale(.98); opacity: .57; }
+    }
     /* Mouvement lent visible, sans cadence respiratoire à suivre (14 s par cycle). */
     .orb-wrap.is-breathing .orb { animation: quiet-pulse 14s ease-in-out infinite; }
     .orb-wrap.is-breathing::before { animation: quiet-halo 14s ease-in-out infinite; }
@@ -71,7 +80,20 @@
       50% { transform: scale(1.17); opacity: 1; }
     }
     .center-symbol { width: 30px; height: 30px; border: 1px solid rgba(226, 207, 182, .44); border-radius: 50%; position: relative; }
-    .center-symbol::after { content: ""; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #c9aa86; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+     .center-symbol::after { content: ""; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #ddbf9c; left: 50%; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 8px rgba(216, 174, 125, .2); }
+    /* Le centre se soulève légèrement, puis le point revient : pensée et champ calme. */
+    .orb-wrap.is-breathing .center-symbol { animation: center-field 14s ease-in-out infinite; }
+    .orb-wrap.is-breathing .center-symbol::after { animation: thought-drift 14s ease-in-out infinite; }
+    @keyframes center-field {
+      0%, 100% { transform: translateY(0) scale(1); opacity: .74; }
+      50% { transform: translateY(-3px) scale(1.11); opacity: 1; }
+    }
+    @keyframes thought-drift {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      34% { transform: translate(calc(-50% + 6px), calc(-50% - 7px)) scale(1.13); }
+      56% { transform: translate(calc(-50% + 2px), calc(-50% - 9px)) scale(.92); }
+      80% { transform: translate(calc(-50% - 2px), calc(-50% - 2px)) scale(1); }
+    }
     .inside-clock { position: absolute; color: #e9dacc; font-size: clamp(33px, 9vw, 44px); font-weight: 300; letter-spacing: .045em; font-variant-numeric: tabular-nums; }
     .state-text { position: absolute; bottom: -40px; white-space: nowrap; font-size: 12px; font-weight: 400; letter-spacing: .02em; color: #ad9d8b; }
     /* Les commandes gardent une empreinte fixe : le cercle et le logo ne bougent pas. */

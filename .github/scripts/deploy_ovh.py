@@ -16,6 +16,11 @@ FILES = (
     "manifest.webmanifest",
     "icons/icon-192.png",
     "icons/icon-512.png",
+    "icons/icon-180.png",
+    "icons/favicon-32.png",
+    "icons/favicon-48.png",
+    "favicon.ico",
+    "og-image.jpg",
 )
 mode = sys.argv[1] if len(sys.argv) > 1 else "verify"
 if mode not in ("verify", "deploy"):
@@ -56,7 +61,7 @@ with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as f:
                     print("SFTP : fichier présent", candidate, exists)
             with sftp.open("index.html", "rb") as remote_index:
                 sample = remote_index.read(8192).decode("utf-8", errors="replace")
-            is_silence = "<title>silence.</title>" in sample and "manifest.webmanifest" in sample
+            is_silence = "<title>silence." in sample and "manifest.webmanifest" in sample
             print("SFTP : signature silence. dans index.html =", is_silence)
             if not is_silence:
                 raise SystemExit("Sécurité : le dossier SFTP ne contient pas silence.")
