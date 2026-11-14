@@ -23,7 +23,7 @@ with sync_playwright() as p:
  page=context.new_page()
  page.on('pageerror', lambda exc: errors.append(str(exc)))
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
- page.goto(f'http://127.0.0.1:{PORT}/meditation/',wait_until='networkidle')
+ page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
  assert page.get_by_text('Version 3.5').is_hidden() # settings not open
  assert page.locator('#setup').is_visible()
