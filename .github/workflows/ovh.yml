@@ -94,7 +94,7 @@ jobs:
         run: |
           set -euo pipefail
           version="$(tr -d '[:space:]' < VERSION)"
-          if [[ ! "$version" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+$ ]]; then
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+[.][0-9]+[.][0-9]+$'; then
             echo "VERSION invalide : $version" >&2
             exit 1
           fi
@@ -110,8 +110,4 @@ jobs:
             exit 1
           fi
           (cd meditation && zip -q -r "$RUNNER_TEMP/silence-${version}.zip" .)
-          gh release create "$tag" "$RUNNER_TEMP/silence-${version}.zip" \\
-            --target "$GITHUB_SHA" \\
-            --title "silence. $tag" \\
-            --notes-file "$notes" \\
-            --latest
+          gh release create "$tag" "$RUNNER_TEMP/silence-${version}.zip" --target "$GITHUB_SHA" --title "silence. $tag" --notes-file "$notes" --latest
