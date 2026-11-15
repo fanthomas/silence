@@ -34,22 +34,22 @@ def init(page, stored=None):
  page.add_style_tag(content=css)
  page.add_script_tag(content=js)
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
-  if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
-   page.wait_for_function("document.body.classList.contains('intro-go')",timeout=1200)
-   assert page.locator('.opening-word').count()==0
-   assert page.locator('#openingParticle').count()==0
-   assert page.locator('#openingTrail').count()==0
-   assert page.locator('.brand').evaluate("""brand => {
-     const a=brand.getAnimations().find(x=>x.effect?.getKeyframes().length===5);
-     if(!a)return false;
-     const old=a.currentTime;a.pause();a.currentTime=1150;
-     const p=brand.querySelector('.brand-dot').getBoundingClientRect();
-     const d=document.getElementById('fieldCenterDot').getBoundingClientRect();
-     const distance=Math.hypot(p.left+p.width*.52-d.left-d.width/2,
-       p.top+p.height*.81-d.top-d.height/2);
-     a.currentTime=old;a.play();
-     return distance<2 && getComputedStyle(brand.querySelector('.brand-dot')).opacity==='1';
-   }""")
+ if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
+  page.wait_for_function("document.body.classList.contains('intro-go')",timeout=1200)
+  assert page.locator('.opening-word').count()==0
+  assert page.locator('#openingParticle').count()==0
+  assert page.locator('#openingTrail').count()==0
+  assert page.locator('.brand').evaluate("""brand => {
+    const a=brand.getAnimations().find(x=>x.effect?.getKeyframes().length===5);
+    if(!a)return false;
+    const old=a.currentTime;a.pause();a.currentTime=1150;
+    const p=brand.querySelector('.brand-dot').getBoundingClientRect();
+    const d=document.getElementById('fieldCenterDot').getBoundingClientRect();
+    const distance=Math.hypot(p.left+p.width*.52-d.left-d.width/2,
+      p.top+p.height*.81-d.top-d.height/2);
+    a.currentTime=old;a.play();
+    return distance<2 && getComputedStyle(brand.querySelector('.brand-dot')).opacity==='1';
+  }""")
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,**({'executable_path': '/usr/bin/chromium'} if Path('/usr/bin/chromium').exists() else {}),args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
