@@ -37,15 +37,19 @@ def init(page, stored=None):
   if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
    page.wait_for_function("document.body.classList.contains('intro-go')",timeout=1200)
    assert page.locator('.opening-word').count()==0
-   assert page.locator('.brand').evaluate("""el => el.getAnimations().some(a=>a.effect?.getKeyframes().some(f=>String(f.transform).includes('scale(1.6)')))""")
-   assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='intro-ripple'")
-   assert 'C' in page.locator('#openingTrailLine').get_attribute('d')
-   page.wait_for_function("""() => {
-      const a=document.querySelector('#openingParticle').getBoundingClientRect();
-      const b=document.querySelector('#fieldCenterDot').getBoundingClientRect();
-      return Number(getComputedStyle(document.querySelector('#openingParticle')).opacity)>.6 &&
-        Math.hypot(a.left+a.width/2-b.left-b.width/2,a.top+a.height/2-b.top-b.height/2)<7;
-   }""",timeout=2400)
+   assert page.locator('#openingParticle').count()==0
+   assert page.locator('#openingTrail').count()==0
+   assert page.locator('.brand').evaluate("""brand => {
+     const a=brand.getAnimations().find(x=>x.effect?.getKeyframes().length===5);
+     if(!a)return false;
+     const old=a.currentTime;a.pause();a.currentTime=1150;
+     const p=brand.querySelector('.brand-dot').getBoundingClientRect();
+     const d=document.getElementById('fieldCenterDot').getBoundingClientRect();
+     const distance=Math.hypot(p.left+p.width*.52-d.left-d.width/2,
+       p.top+p.height*.81-d.top-d.height/2);
+     a.currentTime=old;a.play();
+     return distance<2 && getComputedStyle(brand.querySelector('.brand-dot')).opacity==='1';
+   }""")
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,**({'executable_path': '/usr/bin/chromium'} if Path('/usr/bin/chromium').exists() else {}),args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
@@ -65,7 +69,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.15.0').is_visible()
+ assert page.get_by_text('Version 3.15.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

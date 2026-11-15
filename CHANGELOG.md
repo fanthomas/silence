@@ -2,6 +2,12 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.15.1] - 2026-11-15
+
+- Le logo « silence. » traverse le centre du cercle : son point y dépose un second point, puis le logo rejoint l'en-tête.
+- Suppression du trait et de la particule volante. La ponctuation du logo reste visible pendant toute l'introduction.
+- Tests géométriques mis à jour et erreur d'indentation des tests précédents corrigée.
+
 ## [3.15.0] - 2026-11-15
 
 - Le véritable logo effectue l'animation d'ouverture, sans superposition ni bascule entre deux textes.

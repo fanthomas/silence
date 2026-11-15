@@ -35,30 +35,27 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.15.0').is_hidden() # settings not open
- assert page.locator('.opening-word').count()==0, "Never animate a second logo"
- page.wait_for_function("document.body.classList.contains('intro-go')", timeout=1200)
- assert page.locator('.brand').evaluate("""el => el.getAnimations().some(a=>a.effect?.getKeyframes().some(f=>String(f.transform).includes('scale(1.6)')))""")
+ assert page.get_by_text('Version 3.15.1').is_hidden() # settings not open
+ assert page.locator('.opening-word').count()==0
+ page.wait_for_function("document.body.classList.contains('intro-go')",timeout=1200)
+ assert page.locator('#openingParticle').count()==0
+ assert page.locator('#openingTrail').count()==0
+ assert page.locator('.brand').evaluate("""brand => {
+   const a=brand.getAnimations().find(a=>a.effect?.getKeyframes().length===5);
+   if(!a)return false;
+   const old=a.currentTime;a.pause();
+   const at=t=>{a.currentTime=t;return {w:brand.getBoundingClientRect(),p:brand.querySelector('.brand-dot').getBoundingClientRect()};};
+   const start=at(120),crossing=at(1150);
+   const d=document.getElementById('fieldCenterDot').getBoundingClientRect();
+   a.currentTime=old;a.play();
+   return Math.abs((start.w.left+start.w.right)/2-innerWidth/2)<2 &&
+     Math.abs((start.w.top+start.w.bottom)/2-innerHeight/2)<2 &&
+     Math.hypot(crossing.p.left+crossing.p.width*.52-d.left-d.width/2,
+                crossing.p.top+crossing.p.height*.81-d.top-d.height/2)<2 &&
+     getComputedStyle(brand.querySelector('.brand-dot')).opacity==='1';
+ }"""),'The whole logo must pass exactly through the field center'
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'")
- assert page.locator('#openingParticle').count()==1
- assert 'C' in page.locator('#openingTrailLine').get_attribute('d')
- assert page.locator('.brand').evaluate("""el => {
-    const a=el.getAnimations().find(a=>a.effect?.getKeyframes().some(f=>String(f.transform).includes('scale(1.6)')));
-    if(!a) return false;
-    const saved=a.currentTime; a.currentTime=500;
-    const r=el.getBoundingClientRect(); a.currentTime=saved;
-    return Math.abs((r.left+r.right)/2-innerWidth/2)<3 &&
-           Math.abs((r.top+r.bottom)/2-innerHeight/2)<3;
- }"""), 'Real logo must begin at center'
- page.wait_for_function("""() => {
-   const p=document.querySelector('#openingParticle'), c=document.querySelector('#fieldCenterDot');
-   const a=p.getBoundingClientRect(),b=c.getBoundingClientRect();
-   return Number(getComputedStyle(p).opacity)>.6 &&
-     Math.hypot((a.left+a.right-b.left-b.right)/2,(a.top+a.bottom-b.top-b.bottom)/2)<7;
- }""",timeout=2400)
  assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
- page.wait_for_function("""() => Number(getComputedStyle(document.querySelector('#fieldCenterDot')).opacity)>.20 &&
-   Number(getComputedStyle(document.querySelector('.opening-overlay'),'::before').opacity)<.98""",timeout=2600)
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
  assert page.locator('#tone option').count()==3
@@ -89,7 +86,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.15.0').is_visible()
+ assert page.get_by_text('Version 3.15.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -224,7 +221,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.15.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.15.1' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

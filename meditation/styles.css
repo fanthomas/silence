@@ -177,29 +177,13 @@
     .install-button { margin-top: 17px; width: 100%; border: 1px solid rgba(227, 201, 171, .3); padding: 13px 16px; border-radius: 11px; background: transparent; color: #e8d8c4; font-size: 13px; }
 
 
-    /* Le véritable logo de l'en-tête effectue tout le trajet, sans double. */
+    /* Le logo traverse le centre sans laisser de trait ; son point reste visible. */
     .opening-overlay {
       position: fixed; inset: 0; z-index: 20; overflow: hidden;
       isolation: isolate; pointer-events: auto;
     }
     .opening-overlay::before {
       content: ""; position: absolute; inset: 0; z-index: 0; background: var(--bg);
-    }
-    .opening-trail {
-      position: absolute; inset: 0; z-index: 2;
-      width: 100%; height: 100%; overflow: visible; pointer-events: none; opacity: 0;
-    }
-    .opening-trail-line, .opening-trail-glow {
-      fill: none; stroke: #ead1af; stroke-linecap: round; stroke-linejoin: round;
-    }
-    .opening-trail-line { stroke-width: 1.15; opacity: .65; }
-    .opening-trail-glow { stroke: #d7a778; stroke-width: 5; opacity: .32; filter: blur(4px); }
-    .opening-particle {
-      position: absolute; z-index: 4; left: 0; top: 0;
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #f5ddbe;
-      box-shadow: 0 0 7px 2px rgba(240, 198, 154, .45), 0 0 18px rgba(220, 164, 107, .28);
-      transform: translate(-50%, -50%); opacity: 0; pointer-events: none;
     }
     body:not(.is-opening) .opening-overlay { display: none; }
     body.is-opening .brand { visibility: hidden; }
@@ -209,25 +193,19 @@
     }
     body.is-opening .control-stage,
     body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
-    body.is-opening.intro-go .brand-dot { animation: opening-punctuation 2.45s linear both; }
     body.is-opening.intro-go .opening-overlay::before {
-      animation: opening-screen .46s ease-in-out 1.05s both;
+      animation: opening-screen .60s ease-in-out 1.04s both;
     }
     body.is-opening .orb-wrap #fieldCenterDot {
-      animation: opening-center-arrive .40s ease-out .98s both;
+      animation: opening-center-arrive .28s ease-out 1.12s both;
     }
     body.is-opening.intro-go .control-stage,
     body.is-opening.intro-go .topbar .icon-button {
       animation: opening-controls .50s ease-out 1.95s both;
     }
-    @keyframes opening-punctuation {
-      0%, 10% { opacity: 1; }
-      11%, 87% { opacity: 0; }
-      94%, 100% { opacity: 1; }
-    }
     @keyframes opening-screen { from { opacity: 1; } to { opacity: 0; } }
     @keyframes opening-center-arrive {
-      from { opacity: 0; transform: scale(.5); }
+      from { opacity: 0; transform: scale(.65); }
       to { opacity: 1; transform: scale(1); }
     }
     @keyframes opening-controls { from { opacity: 0; } to { opacity: 1; } }
@@ -236,8 +214,8 @@
       border: 1px solid rgba(218, 188, 155, .24);
       pointer-events: none; opacity: 0;
     }
-    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.06s both; }
-    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.30s both; }
+    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.24s both; }
+    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.42s both; }
     @keyframes intro-ripple {
       0% { opacity: 0; transform: scale(.68); }
       26% { opacity: .44; }
