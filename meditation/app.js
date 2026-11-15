@@ -705,31 +705,41 @@
         const started = performance.now();
         const clamp = (n) => Math.max(0, Math.min(1, n));
         let frame = 0;
-        function animatePoint(now) {
-          const seconds = (now - started) / 1000;
-          const fraction = clamp((seconds - .34) / .80);
-          const eased = fraction * fraction * (3 - 2 * fraction);
-          const position = line.getPointAtLength(eased * length);
-          particle.style.left = position.x + 'px';
-          particle.style.top = position.y + 'px';
-          particle.style.opacity = String(
-            seconds < .32 ? 0 : seconds < 1.20 ? 1 : 1 - clamp((seconds - 1.20) / .35)
-          );
-          for (const path of [line, glow]) path.style.strokeDashoffset = String(length * (1 - eased));
-          trail.style.opacity = String(
-            seconds < .34 ? 0 : seconds < 1.06 ? .66 : .66 * (1 - clamp((seconds - 1.06) / .38))
-          );
-          if (seconds < 1.58) frame = requestAnimationFrame(animatePoint);
-        }
-        frame = requestAnimationFrame(animatePoint);
-        window.setTimeout(() => {
+        let finished = false;
+        const cleanup = () => {
+          if (finished) return;
+          finished = true;
           cancelAnimationFrame(frame);
+          overlay.removeEventListener('pointerdown', cleanup);
           body.classList.remove('is-opening', 'intro-go');
           trail.style.opacity = '';
           particle.style.opacity = '';
           overlay.style.removeProperty('--intro-dx');
           overlay.style.removeProperty('--intro-dy');
-        }, 2450);
+        };
+        // Un toucher peut passer directement à l'application sans décaler son interface.
+        overlay.addEventListener('pointerdown', cleanup, {once:true});
+        function animatePoint(now) {
+          if (finished) return;
+          const seconds = (now - started) / 1000;
+          // Le point termine sa course AVANT le mouvement du logo (1,15 s).
+          const fraction = clamp((seconds - .28) / .77);
+          const eased = fraction * fraction * (3 - 2 * fraction);
+          const position = line.getPointAtLength(eased * length);
+          particle.style.left = position.x + 'px';
+          particle.style.top = position.y + 'px';
+          particle.style.opacity = String(
+            seconds < .25 ? 0 : seconds < 1.04 ? 1 : 1 - clamp((seconds - 1.04) / .34)
+          );
+          // La trace s'efface au moment où le point est repris par le SVG.
+          for (const path of [line, glow]) path.style.strokeDashoffset = String(length * (1 - eased));
+          trail.style.opacity = String(
+            seconds < .27 ? 0 : seconds < 1.02 ? .7 : .7 * (1 - clamp((seconds - 1.02) / .38))
+          );
+          if (seconds < 1.44) frame = requestAnimationFrame(animatePoint);
+        }
+        frame = requestAnimationFrame(animatePoint);
+        window.setTimeout(cleanup, 2580);
       }
 
       recoverSession();

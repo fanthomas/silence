@@ -2,6 +2,15 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.14.1] - 2026-11-15
+
+- Correction de la chronologie de l'introduction : le point termine son trajet avant que le texte ne se déplace.
+- Le vrai point central du SVG apparaît progressivement au moment de l'arrivée, sans disparition intermédiaire.
+- Le champ organique devient visible au bon moment et la trace lumineuse s'efface simultanément.
+- Les commandes s'affichent après le déplacement du mot ; la mise en page ne bouge pas.
+- Un toucher pendant l'introduction permet désormais de passer directement à l'application.
+- Tests dédiés à la synchronisation du point, au positionnement final du logo et à l'absence de défilement.
+
 ## [3.14.0] - 2026-11-15
 
 - Ouverture repensée autour de « silence. » centré : le point final se détache et rejoint le centre du champ organique.

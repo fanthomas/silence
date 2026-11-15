@@ -213,37 +213,46 @@
     body.is-opening .brand { visibility: hidden; }
     body.is-opening .control-stage,
     body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
+    /* 1. Le point se détache et arrive. 2. Le champ se dévoile.
+       3. Le mot se range. Les mouvements ne se chevauchent plus à contretemps. */
     body.is-opening.intro-go .opening-word {
-      animation: opening-word 2.28s cubic-bezier(.34, 0, .16, 1) both;
+      animation: opening-word 2.45s cubic-bezier(.4, 0, .12, 1) both;
     }
     body.is-opening.intro-go .opening-punctuation {
-      animation: opening-punctuation 2.28s linear both;
+      animation: opening-punctuation 2.45s linear both;
     }
     body.is-opening.intro-go .opening-overlay::before {
-      animation: opening-screen .66s ease-in-out .97s both;
+      animation: opening-screen .46s ease-in-out .97s both;
+    }
+    body.is-opening .orb-wrap #fieldCenterDot {
+      animation: opening-center-arrive .40s ease-out .98s both;
     }
     body.is-opening.intro-go .control-stage,
     body.is-opening.intro-go .topbar .icon-button {
-      animation: opening-controls .6s ease-out 1.76s both;
+      animation: opening-controls .50s ease-out 1.95s both;
     }
     @keyframes opening-word {
-      0%, 44% { transform: translate(-50%, -50%) scale(1.6); }
+      0%, 47% { transform: translate(-50%, -50%) scale(1.6); }
       100% { transform: translate(calc(-50% + var(--intro-dx)), calc(-50% + var(--intro-dy))) scale(1); }
     }
     @keyframes opening-punctuation {
-      0%, 13% { opacity: 1; }
-      14%, 93% { opacity: 0; }
+      0%, 11% { opacity: 1; }
+      12%, 93% { opacity: 0; }
       100% { opacity: 1; }
     }
     @keyframes opening-screen { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes opening-center-arrive {
+      from { opacity: 0; transform: scale(.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
     @keyframes opening-controls { from { opacity: 0; } to { opacity: 1; } }
     .visual::before, .visual::after {
       content: ""; position: absolute; inset: 0; border-radius: 50%;
       border: 1px solid rgba(218, 188, 155, .24);
       pointer-events: none; opacity: 0;
     }
-    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.12s both; }
-    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.37s both; }
+    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.06s both; }
+    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.30s both; }
     @keyframes intro-ripple {
       0% { opacity: 0; transform: scale(.68); }
       26% { opacity: .44; }

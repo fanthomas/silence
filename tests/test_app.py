@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.14.0').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.14.1').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -52,18 +52,40 @@ with sync_playwright() as p:
    return Number(getComputedStyle(particle).opacity)>.6 && distance < 7;
  }""", timeout=2200)
  assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), 'Intro must not trigger horizontal scrolling'
+ # Le centre doit déjà apparaître quand le point arrive ; le voile est en cours d'effacement.
+ page.wait_for_function("""() => {
+    const dot=document.querySelector('#fieldCenterDot');
+    const particle=document.querySelector('#openingParticle');
+    const bg=getComputedStyle(document.querySelector('.opening-overlay'),'::before');
+    return Number(getComputedStyle(dot).opacity) > .20 &&
+           Number(getComputedStyle(particle).opacity) > .35 &&
+           Number(bg.opacity) < .98;
+ }""",timeout=2400)
+ assert page.locator('.opening-word').evaluate("""el => {
+   const a=el.getAnimations().find(x=>x.animationName==='opening-word');
+   if(!a) return false;
+   const old=a.currentTime;
+   a.currentTime=900;
+   const box=el.getBoundingClientRect();
+   a.currentTime=old;
+   return Math.abs((box.left+box.right)/2-innerWidth/2)<3;
+ }"""), 'The title must stay centered until the dot finishes its travel'
  intro_geometry=page.evaluate("""() => {
    const brand=document.querySelector('.opening-word');
    const animation=brand.getAnimations().find(a=>a.animationName==='opening-word');
    animation.currentTime=420;
    const center=brand.getBoundingClientRect();
-   animation.currentTime=1950;
+   animation.currentTime=2435;
    const end=brand.getBoundingClientRect();
-   return {cx:center.x+center.width/2,cy:center.y+center.height/2,endX:end.x};
+   const target=document.querySelector('.brand').getBoundingClientRect();
+   return {cx:center.x+center.width/2,cy:center.y+center.height/2,
+      endX:end.x, finalCenterX:end.x+end.width/2, targetCenterX:target.x+target.width/2,
+      finalCenterY:end.y+end.height/2,targetCenterY:target.y+target.height/2};
  }""")
  assert abs(intro_geometry['cx'] - 180)<3, intro_geometry
  assert abs(intro_geometry['cy'] - 390)<3, intro_geometry
- assert intro_geometry['endX']<80,intro_geometry
+ assert abs(intro_geometry['finalCenterX']-intro_geometry['targetCenterX'])<3,intro_geometry
+ assert abs(intro_geometry['finalCenterY']-intro_geometry['targetCenterY'])<3,intro_geometry
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
  assert page.locator('#tone option').count()==3
@@ -94,7 +116,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.14.0').is_visible()
+ assert page.get_by_text('Version 3.14.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -229,7 +251,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.14.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.14.1' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')
