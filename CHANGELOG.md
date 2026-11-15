@@ -2,6 +2,15 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.12.0] - 2026-11-15
+
+- Visuel « Orbites dorées vers le silence » validé, adapté en 1200 × 630 et intégré aux aperçus Open Graph et Twitter.
+- Identité de partage recentrée sur « silence. », avec « un moment à soi » dans la description et sans séparateur artificiel.
+- SVG de l'application enrichi de neuf orbites organiques et de deux voiles lumineux, dont les courbes se déforment réellement.
+- Point central fixe (200, 200), avec une très légère pulsation de 7 %, sans mouvement orbital.
+- Cohérence visuelle entre l'illustration de partage et le champ vivant, avec respect des animations réduites.
+- Sons, minuteries, commandes et mode hors connexion conservés.
+
 ## [3.11.1] - 2026-11-15
 
 - Point central, déplacement orbital et cercle statique supprimés : seules les courbes SVG organiques restent visibles.

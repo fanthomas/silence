@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.11.1').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.12.0').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -65,7 +65,7 @@ with sync_playwright() as p:
  assert page.locator('#peek').evaluate("el=>el.classList.contains('is-field-active')")
  # Métadonnées de partage et visuels servent de vrais fichiers image.
  assert page.locator('link[rel="canonical"]').get_attribute('href')=='https://mebius.cc/meditation/'
- assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg?v=3.11.1'
+ assert page.locator('meta[property="og:image"]').get_attribute('content')=='https://mebius.cc/meditation/og-image.jpg?v=3.12.0'
  assert page.locator('meta[property="og:image:width"]').get_attribute('content')=='1200'
  assert page.locator('meta[property="og:image:height"]').get_attribute('content')=='630'
  assert page.locator('meta[name="twitter:card"]').get_attribute('content')=='summary_large_image'
@@ -81,7 +81,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.11.1').is_visible()
+ assert page.get_by_text('Version 3.12.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -125,6 +125,19 @@ with sync_playwright() as p:
  page.mouse.click(ring['x']+ring['width']/2,ring['y']+ring['height']/2)
  assert page.locator('#clock').is_hidden(), 'Aucune interaction avec le cercle ne doit dévoiler le temps'
 
+ # Le point central ne change jamais de position, seule une très légère pulsation est autorisée.
+ assert page.locator('#fieldCenterDot').count()==1
+ assert page.locator('#fieldCenterDot').evaluate("(el)=>el.getAttribute('cx')==='200' && el.getAttribute('cy')==='200'")
+ assert page.locator('#fieldCenterDot').evaluate("(el)=>getComputedStyle(el).animationName==='field-center-breathe'")
+ center_before=page.locator('#fieldCenterDot').evaluate("(el)=>[el.cx.baseVal.value,el.cy.baseVal.value]")
+ page.wait_for_timeout(280)
+ center_after=page.locator('#fieldCenterDot').evaluate("(el)=>[el.cx.baseVal.value,el.cy.baseVal.value]")
+ assert center_before==center_after==[200,200], (center_before,center_after)
+ assert page.locator('.field-lines > path').count()==9
+ assert page.locator('#fieldVeilOuter').get_attribute('d').count('M')==2
+ assert page.locator('#fieldVeilInner').get_attribute('d').count('M')==2
+ # Les lignes demeurent des courbes réelles, et non une image de fond.
+ assert page.locator('#fieldSvg image').count()==0
  # Le champ est entièrement organique : ni point central, ni cercle fixe, ni halo elliptique.
  assert page.locator('.center-symbol').count()==0
  assert page.locator('.orb').count()==0
@@ -196,7 +209,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.11.1' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.12.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

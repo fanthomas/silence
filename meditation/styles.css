@@ -50,38 +50,56 @@
       pointer-events: none; cursor: default; user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-    /* Champ vivant : quatre tracés SVG déformés en continu, pas d'image animée. */
+    /* Champ unifié : la courbe, ses reflets et ses voiles sont tous vectoriels. */
     .field-svg {
       position: absolute; z-index: 2; top: -34%; left: -34%;
       width: 168%; height: 168%; overflow: visible;
       pointer-events: none; user-select: none;
+      transform-origin: center;
     }
+    .field-aura { opacity: .46; }
+    .field-veil { fill: url(#fieldFaint); opacity: .19; }
+    .field-veil-inner { opacity: .11; }
     .field-line {
-      fill: none; stroke: url(#fieldMetal); stroke-width: 1.12;
+      fill: none; stroke: url(#fieldMetal); stroke-width: 1.06;
       stroke-linecap: round; stroke-linejoin: round;
     }
-    .field-line-outer { opacity: .82; }
-    .field-line-middle { opacity: .97; stroke-width: 1.27; }
-    .field-line-inner { opacity: .74; stroke-width: 1.08; }
-    .field-line-core { opacity: .5; stroke: url(#fieldFaint); stroke-width: .95; }
+    .field-line-outer { opacity: .7; }
+    .field-line-middle { opacity: .94; stroke-width: 1.32; }
+    .field-line-inner { opacity: .78; stroke-width: 1.18; }
+    .field-line-satellite { opacity: .32; stroke: url(#fieldFaint); stroke-width: .82; }
+    .field-line-fine { opacity: .24; stroke-width: .62; }
+    .field-line-core { opacity: .46; stroke: url(#fieldFaint); stroke-width: .84; }
     .field-glow {
-      fill: none; stroke: #e9b88d; stroke-width: 3.4;
-      opacity: .13; filter: url(#fieldGlow);
+      fill: none; stroke: #edb886; stroke-width: 4;
+      opacity: .18; filter: url(#fieldGlow);
     }
-    .field-glow-middle { opacity: .2; }
-    .field-glow-inner { opacity: .1; }
-    /* Aucun tiret ni raccord visible : le reflet est un dégradé continu sur un tracé fermé. */
+    .field-glow-middle { opacity: .25; }
+    .field-glow-inner { opacity: .13; }
     .field-sheen {
-      fill: none; stroke: url(#fieldSheen); stroke-width: 1.6;
-      stroke-linejoin: round; opacity: .64;
+      fill: none; stroke: url(#fieldSheen); stroke-width: 1.8;
+      stroke-linejoin: round; opacity: .68;
     }
-    .field-sheen-middle { stroke-width: 1.85; opacity: .83; }
-    .field-sheen-inner { stroke-width: 1.35; opacity: .42; }
-    /* Seules les courbes organiques restent visibles. Le cycle demeure lent et stable. */
+    .field-sheen-middle { stroke-width: 2.1; opacity: .88; }
+    .field-sheen-inner { stroke-width: 1.5; opacity: .55; }
+    /* Le seul point ne se déplace jamais : sa taille varie de 7 % au maximum. */
+    .field-center { pointer-events: none; }
+    #fieldCenterDot {
+      fill: #ffe7c3; stroke: #ffe6c0; stroke-width: .3;
+      transform-box: view-box; transform-origin: 200px 200px;
+      filter: drop-shadow(0 0 3px rgba(255, 203, 147, .56));
+    }
+    .orb-wrap.is-field-active #fieldCenterDot {
+      animation: field-center-breathe 14s ease-in-out infinite;
+    }
+    @keyframes field-center-breathe {
+      0%, 100% { transform: scale(1); opacity: .86; }
+      50% { transform: scale(1.07); opacity: 1; }
+    }
     .orb-wrap.is-breathing .field-svg { animation: quiet-pulse 14s ease-in-out infinite; }
     @keyframes quiet-pulse {
-      0%, 100% { transform: scale(1); opacity: .92; }
-      50% { transform: scale(1.055); opacity: 1; }
+      0%, 100% { transform: scale(1); opacity: .96; }
+      50% { transform: scale(1.03); opacity: 1; }
     }
     .inside-clock { position: absolute; color: #e9dacc; font-size: clamp(33px, 9vw, 44px); font-weight: 300; letter-spacing: .045em; font-variant-numeric: tabular-nums; }
     .state-text { position: absolute; bottom: -40px; white-space: nowrap; font-size: 12px; font-weight: 400; letter-spacing: .02em; color: #ad9d8b; }

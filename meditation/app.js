@@ -3,7 +3,9 @@
 
       const $ = (id) => document.getElementById(id);
       const el = Object.fromEntries([
-        'status', 'title', 'description', 'stateText', 'clock', 'peek', 'fieldSvg', 'fieldSheen', 'fieldWaveOuter', 'fieldWaveMiddle', 'fieldWaveInner', 'fieldWaveCore', 'setup', 'modeFree',
+        'status', 'title', 'description', 'stateText', 'clock', 'peek', 'fieldSvg', 'fieldSheen', 'fieldCenterDot', 'fieldVeilOuter', 'fieldVeilInner',
+        'fieldWaveOuter', 'fieldWaveOuterFine', 'fieldWaveMiddle', 'fieldWaveMiddleFine',
+        'fieldWaveSatellite', 'fieldWaveInner', 'fieldWaveInnerFine', 'fieldWaveCore', 'fieldWaveCoreFine', 'setup', 'modeFree',
         'markerRow', 'markerLabel', 'marker',
         'delay', 'tone', 'volume', 'testSound', 'motion', 'dark', 'wake', 'wakeHint', 'start', 'activeControls',
         'pauseResume', 'stop',
@@ -289,10 +291,16 @@
       // Cadence plafonnée à 30 i/s pour préserver l'autonomie des téléphones.
       const fieldMotionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
       const fieldRings = [
-        { node: el.fieldWaveOuter, radius: 158, amplitude: 10.0, phase: .2, oval: 1.035 },
-        { node: el.fieldWaveMiddle, radius: 129, amplitude: 11.2, phase: 1.8, oval: .985 },
-        { node: el.fieldWaveInner, radius: 96, amplitude: 7.8, phase: 3.4, oval: 1.025 },
-        { node: el.fieldWaveCore, radius: 67, amplitude: 5.0, phase: 4.6, oval: .98 }
+        // Plusieurs orbites se rapprochent puis se séparent : les pensées passent, le centre reste.
+        { node: el.fieldWaveOuter, radius: 165, amplitude: 18.0, phase: .15, oval: 1.05 },
+        { node: el.fieldWaveOuterFine, radius: 151, amplitude: 24.0, phase: .41, oval: 1.07 },
+        { node: el.fieldWaveMiddle, radius: 136, amplitude: 19.0, phase: 1.3, oval: .975 },
+        { node: el.fieldWaveMiddleFine, radius: 123, amplitude: 20.0, phase: 1.86, oval: 1.03 },
+        { node: el.fieldWaveSatellite, radius: 114, amplitude: 17.0, phase: 2.21, oval: .985 },
+        { node: el.fieldWaveInner, radius: 98, amplitude: 14.0, phase: 3.13, oval: 1.015 },
+        { node: el.fieldWaveInnerFine, radius: 85, amplitude: 11.0, phase: 3.71, oval: .98 },
+        { node: el.fieldWaveCore, radius: 70, amplitude: 8.0, phase: 4.56, oval: 1.025 },
+        { node: el.fieldWaveCoreFine, radius: 55, amplitude: 6.0, phase: 5.24, oval: 1.0 }
       ];
       let fieldFrameId = 0;
       let fieldFrameTime = 0;
@@ -336,8 +344,11 @@
         return path + 'Z';
       }
       function paintField(time) {
-        for (const ring of fieldRings) ring.node.setAttribute('d', fieldPath(ring, time));
-        // Le reflet se déplace par un dégradé doux sur toute la courbe fermée.
+        const paths = fieldRings.map((ring) => fieldPath(ring, time));
+        fieldRings.forEach((ring, i) => ring.node.setAttribute('d', paths[i]));
+        // Voiles transparents entre deux orbites fermées ; aucune image n'est déplacée.
+        el.fieldVeilOuter.setAttribute('d', paths[0] + ' ' + paths[2]);
+        el.fieldVeilInner.setAttribute('d', paths[3] + ' ' + paths[5]);
         const direction = time * .12;
         const dx = Math.cos(direction) * 175;
         const dy = Math.sin(direction) * 175;
