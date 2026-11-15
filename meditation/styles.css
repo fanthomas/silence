@@ -176,43 +176,74 @@
     .text-button { border: 0; background: none; padding: 9px 0; color: #dbbf9e; font-size: 12px; }
     .install-button { margin-top: 17px; width: 100%; border: 1px solid rgba(227, 201, 171, .3); padding: 13px 16px; border-radius: 11px; background: transparent; color: #e8d8c4; font-size: 13px; }
 
-    /* Aucune image sous le mot d'accueil : silence. est visible au centre dès le premier rendu. */
+    /* Une seule histoire : le point final rejoint le centre avant que le mot se range. */
     .opening-overlay {
       position: fixed; inset: 0; z-index: 20; overflow: hidden;
-      background: transparent; display: grid; place-items: center;
+      isolation: isolate; pointer-events: auto;
+    }
+    .opening-overlay::before {
+      content: ""; position: absolute; inset: 0; z-index: 0;
+      background: var(--bg);
     }
     .opening-word {
-      position: absolute; top: 50%; left: 50%; z-index: 1;
+      position: absolute; top: 50%; left: 50%; z-index: 3;
       color: #e9dfd1; font: 400 27px/1.2 Georgia, "Times New Roman", serif;
       letter-spacing: -.055em; white-space: nowrap; user-select: none;
-      transform: translate(-50%, -50%) scale(1.6);
+      transform: translate(-50%, -50%) scale(1.6); transform-origin: center;
+    }
+    .opening-punctuation { display: inline-block; }
+    .opening-trail {
+      position: absolute; inset: 0; z-index: 2;
+      width: 100%; height: 100%; overflow: visible;
+      pointer-events: none; opacity: 0;
+    }
+    .opening-trail-line, .opening-trail-glow {
+      fill: none; stroke: #ead1af; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .opening-trail-line { stroke-width: 1.15; opacity: .65; }
+    .opening-trail-glow { stroke: #d7a778; stroke-width: 5; opacity: .32; filter: blur(4px); }
+    .opening-particle {
+      position: absolute; z-index: 4; left: 0; top: 0;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #f5ddbe;
+      box-shadow: 0 0 7px 2px rgba(240, 198, 154, .45), 0 0 18px rgba(220, 164, 107, .28);
+      transform: translate(-50%, -50%); opacity: 0; pointer-events: none;
     }
     body:not(.is-opening) .opening-overlay { display: none; }
     body.is-opening .brand { visibility: hidden; }
+    body.is-opening .control-stage,
+    body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
     body.is-opening.intro-go .opening-word {
-      animation: opening-word 2.1s cubic-bezier(.44, 0, .16, 1) both;
+      animation: opening-word 2.28s cubic-bezier(.34, 0, .16, 1) both;
     }
-    /* Le mot reste visible pendant que le fond se retire, sans flash ni changement de police. */
-    .opening-overlay::before {
-      content: ""; position: absolute; inset: 0; background: #151411;
+    body.is-opening.intro-go .opening-punctuation {
+      animation: opening-punctuation 2.28s linear both;
     }
     body.is-opening.intro-go .opening-overlay::before {
-      animation: opening-fade .65s ease-out 1.53s both;
+      animation: opening-screen .66s ease-in-out .97s both;
+    }
+    body.is-opening.intro-go .control-stage,
+    body.is-opening.intro-go .topbar .icon-button {
+      animation: opening-controls .6s ease-out 1.76s both;
     }
     @keyframes opening-word {
-      0%, 27% { transform: translate(-50%, -50%) scale(1.6); }
-      100% {
-        transform: translate(calc(-50% + var(--intro-dx)), calc(-50% + var(--intro-dy))) scale(1);
-      }
+      0%, 44% { transform: translate(-50%, -50%) scale(1.6); }
+      100% { transform: translate(calc(-50% + var(--intro-dx)), calc(-50% + var(--intro-dy))) scale(1); }
     }
-    @keyframes opening-fade { to { opacity: 0; } }
+    @keyframes opening-punctuation {
+      0%, 13% { opacity: 1; }
+      14%, 93% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes opening-screen { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes opening-controls { from { opacity: 0; } to { opacity: 1; } }
     .visual::before, .visual::after {
       content: ""; position: absolute; inset: 0; border-radius: 50%;
       border: 1px solid rgba(218, 188, 155, .24);
       pointer-events: none; opacity: 0;
     }
-    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.27s both; }
-    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.5s both; }
+    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.12s both; }
+    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.37s both; }
     @keyframes intro-ripple {
       0% { opacity: 0; transform: scale(.68); }
       26% { opacity: .44; }

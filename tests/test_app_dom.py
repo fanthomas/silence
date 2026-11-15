@@ -38,6 +38,14 @@ def init(page, stored=None):
   assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')")
   assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(a=>a.animationName==='opening-word')")
   assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='intro-ripple'")
+  assert page.locator('#openingParticle').count()==1
+  assert 'C' in page.locator('#openingTrailLine').get_attribute('d')
+  page.wait_for_function("""() => {
+    const a=document.querySelector('#openingParticle').getBoundingClientRect();
+    const b=document.querySelector('#fieldCenterDot').getBoundingClientRect();
+    return Number(getComputedStyle(document.querySelector('#openingParticle')).opacity)>.6 &&
+      Math.hypot(a.left+a.width/2-b.left-b.width/2,a.top+a.height/2-b.top-b.height/2)<7;
+  }""",timeout=2200)
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,**({'executable_path': '/usr/bin/chromium'} if Path('/usr/bin/chromium').exists() else {}),args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
@@ -57,7 +65,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.13.0').is_visible()
+ assert page.get_by_text('Version 3.14.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

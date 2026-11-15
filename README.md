@@ -17,7 +17,7 @@ Avec **silence.**, tu choisis une durée ou tu médites librement, sans regarder
 - **Trois repères discrets** : Bol feutré, Bois doux et Goutte douce, sans musique ni ambiance sonore.
 - **Un champ de courbes lumineuses**, animé en SVG : les pensées traversent les ondes tandis qu'un point central reste immobile et respire doucement.
 
-Le temps reste masqué. Les réglages restent discrets.
+À l’ouverture, le point final de « silence. » rejoint le centre du champ organique, puis le mot prend sa place. Le temps reste masqué. Les réglages restent discrets.
 
 ## Juste l’essentiel.
 

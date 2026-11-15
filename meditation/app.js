@@ -653,20 +653,83 @@
       function showOpening() {
         const body = document.body;
         const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        // L'accessibilité et la reprise d'une séance priment sur l'introduction.
         if (phase !== 'idle' || reduceMotion) {
           body.classList.remove('is-opening');
           return;
         }
-        const target = document.querySelector('.brand').getBoundingClientRect();
+        const brand = document.querySelector('.brand');
+        const word = document.querySelector('.opening-word');
+        const punctuation = document.querySelector('.opening-punctuation');
         const overlay = document.querySelector('.opening-overlay');
-        overlay.style.setProperty('--intro-dx', (target.left + target.width / 2 - window.innerWidth / 2) + 'px');
-        overlay.style.setProperty('--intro-dy', (target.top + target.height / 2 - window.innerHeight / 2) + 'px');
+        const particle = document.getElementById('openingParticle');
+        const trail = document.getElementById('openingTrail');
+        const line = document.getElementById('openingTrailLine');
+        const glow = document.getElementById('openingTrailGlow');
+        const dot = document.getElementById('fieldCenterDot');
+        const target = brand.getBoundingClientRect();
+        const punctuationRect = punctuation.getBoundingClientRect();
+        const dotRect = dot.getBoundingClientRect();
+        const viewWidth = document.documentElement.clientWidth;
+        const viewHeight = window.innerHeight;
+
+        // Le mot finit sur le vrai logo, quels que soient l'orientation et le zoom.
+        overlay.style.setProperty('--intro-dx', (target.left + target.width / 2 - viewWidth / 2) + 'px');
+        overlay.style.setProperty('--intro-dy', (target.top + target.height / 2 - viewHeight / 2) + 'px');
+        const start = {
+          x: punctuationRect.left + punctuationRect.width * .52,
+          y: punctuationRect.top + punctuationRect.height * .83
+        };
+        const end = { x: dotRect.left + dotRect.width / 2, y: dotRect.top + dotRect.height / 2 };
+        trail.setAttribute('viewBox', '0 0 ' + viewWidth + ' ' + viewHeight);
+        trail.setAttribute('preserveAspectRatio', 'none');
+
+        // Une courbe souple relie le point final au centre du champ organique.
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const curve = 'M' + start.x.toFixed(2) + ' ' + start.y.toFixed(2)
+          + 'C' + (start.x + dx * .36).toFixed(2) + ' ' + (start.y + dy * .18 - 22).toFixed(2)
+          + ' ' + (start.x + dx * .73).toFixed(2) + ' ' + (start.y + dy * .81 + 15).toFixed(2)
+          + ' ' + end.x.toFixed(2) + ' ' + end.y.toFixed(2);
+        line.setAttribute('d', curve);
+        glow.setAttribute('d', curve);
+        const length = line.getTotalLength();
+        for (const path of [line, glow]) {
+          path.style.strokeDasharray = String(length);
+          path.style.strokeDashoffset = String(length);
+        }
+        particle.style.left = start.x + 'px';
+        particle.style.top = start.y + 'px';
         body.classList.add('intro-go');
+
+        const started = performance.now();
+        const clamp = (n) => Math.max(0, Math.min(1, n));
+        let frame = 0;
+        function animatePoint(now) {
+          const seconds = (now - started) / 1000;
+          const fraction = clamp((seconds - .34) / .80);
+          const eased = fraction * fraction * (3 - 2 * fraction);
+          const position = line.getPointAtLength(eased * length);
+          particle.style.left = position.x + 'px';
+          particle.style.top = position.y + 'px';
+          particle.style.opacity = String(
+            seconds < .32 ? 0 : seconds < 1.20 ? 1 : 1 - clamp((seconds - 1.20) / .35)
+          );
+          for (const path of [line, glow]) path.style.strokeDashoffset = String(length * (1 - eased));
+          trail.style.opacity = String(
+            seconds < .34 ? 0 : seconds < 1.06 ? .66 : .66 * (1 - clamp((seconds - 1.06) / .38))
+          );
+          if (seconds < 1.58) frame = requestAnimationFrame(animatePoint);
+        }
+        frame = requestAnimationFrame(animatePoint);
         window.setTimeout(() => {
+          cancelAnimationFrame(frame);
           body.classList.remove('is-opening', 'intro-go');
+          trail.style.opacity = '';
+          particle.style.opacity = '';
           overlay.style.removeProperty('--intro-dx');
           overlay.style.removeProperty('--intro-dy');
-        }, 2250);
+        }, 2450);
       }
 
       recoverSession();

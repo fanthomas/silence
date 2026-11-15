@@ -2,6 +2,15 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.14.0] - 2026-11-15
+
+- Ouverture repensée autour de « silence. » centré : le point final se détache et rejoint le centre du champ organique.
+- Trajectoire vectorielle courbe calculée en fonction de la position réelle du point et du centre sur chaque écran, avec une trace lumineuse qui se dissipe.
+- Le champ se révèle doucement au moment où le point arrive, puis le mot rejoint son emplacement définitif dans l'en-tête.
+- Apparition différée des commandes, sans déplacement de la mise en page ni défilement horizontal.
+- Introduction ignorée si une séance est restaurée ou si l'utilisateur réduit les animations.
+- Tests navigateur ajoutés pour la trajectoire, la liaison au centre et la disparition de l'introduction.
+
 ## [3.13.0] - 2026-11-15
 
 - Durées fixes : un seul repère sonore à la durée choisie, sans avertissement à 10 minutes.

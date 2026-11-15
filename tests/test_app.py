@@ -35,10 +35,23 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.13.0').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.14.0').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
+ assert page.locator('.opening-particle').count()==1
+ assert page.locator('.opening-punctuation').count()==1
+ assert page.locator('#openingTrailLine').get_attribute('d').startswith('M')
+ assert 'C' in page.locator('#openingTrailLine').get_attribute('d')
+ # Le point final suit une courbe, puis atteint exactement le point central.
+ page.wait_for_function("""() => {
+   const particle=document.querySelector('#openingParticle');
+   const center=document.querySelector('#fieldCenterDot');
+   const a=particle.getBoundingClientRect(),b=center.getBoundingClientRect();
+   const distance=Math.hypot((a.left+a.width/2)-(b.left+b.width/2),(a.top+a.height/2)-(b.top+b.height/2));
+   return Number(getComputedStyle(particle).opacity)>.6 && distance < 7;
+ }""", timeout=2200)
+ assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), 'Intro must not trigger horizontal scrolling'
  intro_geometry=page.evaluate("""() => {
    const brand=document.querySelector('.opening-word');
    const animation=brand.getAnimations().find(a=>a.animationName==='opening-word');
@@ -81,7 +94,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.13.0').is_visible()
+ assert page.get_by_text('Version 3.14.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -216,7 +229,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.13.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.14.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')
