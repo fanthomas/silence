@@ -2,6 +2,13 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.15.0] - 2026-11-15
+
+- Le véritable logo effectue l'animation d'ouverture, sans superposition ni bascule entre deux textes.
+- Le point se détache, laisse une trace jusqu'au centre SVG et passe le relais au point fixe.
+- Calcul des positions après mise en page ; interruption propre au toucher, à la rotation ou à la reprise de séance.
+- Vérification navigateur en portrait et paysage ; tests adaptés au logo unique.
+
 ## [3.14.1] - 2026-11-15
 
 - Correction de la chronologie de l'introduction : le point termine son trajet avant que le texte ne se déplace.

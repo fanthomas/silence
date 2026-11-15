@@ -34,25 +34,18 @@ def init(page, stored=None):
  page.add_style_tag(content=css)
  page.add_script_tag(content=js)
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
-  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')")
-  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(a=>a.animationName==='opening-word')")
-  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='intro-ripple'")
-  assert page.locator('#openingParticle').count()==1
-  assert 'C' in page.locator('#openingTrailLine').get_attribute('d')
-  page.wait_for_function("""() => {
-    const a=document.querySelector('#openingParticle').getBoundingClientRect();
-    const b=document.querySelector('#fieldCenterDot').getBoundingClientRect();
-    return Number(getComputedStyle(document.querySelector('#openingParticle')).opacity)>.6 &&
-      Math.hypot(a.left+a.width/2-b.left-b.width/2,a.top+a.height/2-b.top-b.height/2)<7;
-  }""",timeout=2200)
-  page.wait_for_function("""() => {
-    const o=document.querySelector('#openingParticle');
-    const d=document.querySelector('#fieldCenterDot');
-    return Number(getComputedStyle(d).opacity)>.20 &&
-           Number(getComputedStyle(o).opacity)>.35 &&
-           Number(getComputedStyle(document.querySelector('.opening-overlay'),'::before').opacity)<.98;
-  }""",timeout=2400)
+  if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
+   page.wait_for_function("document.body.classList.contains('intro-go')",timeout=1200)
+   assert page.locator('.opening-word').count()==0
+   assert page.locator('.brand').evaluate("""el => el.getAnimations().some(a=>a.effect?.getKeyframes().some(f=>String(f.transform).includes('scale(1.6)')))""")
+   assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::after').animationName==='intro-ripple'")
+   assert 'C' in page.locator('#openingTrailLine').get_attribute('d')
+   page.wait_for_function("""() => {
+      const a=document.querySelector('#openingParticle').getBoundingClientRect();
+      const b=document.querySelector('#fieldCenterDot').getBoundingClientRect();
+      return Number(getComputedStyle(document.querySelector('#openingParticle')).opacity)>.6 &&
+        Math.hypot(a.left+a.width/2-b.left-b.width/2,a.top+a.height/2-b.top-b.height/2)<7;
+   }""",timeout=2400)
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,**({'executable_path': '/usr/bin/chromium'} if Path('/usr/bin/chromium').exists() else {}),args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
@@ -72,7 +65,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.14.1').is_visible()
+ assert page.get_by_text('Version 3.15.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

@@ -650,96 +650,107 @@
       }
 
 
+
       function showOpening() {
         const body = document.body;
-        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-        // L'accessibilité et la reprise d'une séance priment sur l'introduction.
-        if (phase !== 'idle' || reduceMotion) {
+        if (phase !== 'idle' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
           body.classList.remove('is-opening');
           return;
         }
-        const brand = document.querySelector('.brand');
-        const word = document.querySelector('.opening-word');
-        const punctuation = document.querySelector('.opening-punctuation');
+        const brand = document.querySelector('.topbar .brand');
+        const punctuation = brand?.querySelector('.brand-dot');
         const overlay = document.querySelector('.opening-overlay');
         const particle = document.getElementById('openingParticle');
         const trail = document.getElementById('openingTrail');
         const line = document.getElementById('openingTrailLine');
         const glow = document.getElementById('openingTrailGlow');
         const dot = document.getElementById('fieldCenterDot');
-        const target = brand.getBoundingClientRect();
-        const punctuationRect = punctuation.getBoundingClientRect();
-        const dotRect = dot.getBoundingClientRect();
-        const viewWidth = document.documentElement.clientWidth;
-        const viewHeight = window.innerHeight;
-
-        // Le mot finit sur le vrai logo, quels que soient l'orientation et le zoom.
-        overlay.style.setProperty('--intro-dx', (target.left + target.width / 2 - viewWidth / 2) + 'px');
-        overlay.style.setProperty('--intro-dy', (target.top + target.height / 2 - viewHeight / 2) + 'px');
-        const start = {
-          x: punctuationRect.left + punctuationRect.width * .52,
-          y: punctuationRect.top + punctuationRect.height * .83
-        };
-        const end = { x: dotRect.left + dotRect.width / 2, y: dotRect.top + dotRect.height / 2 };
-        trail.setAttribute('viewBox', '0 0 ' + viewWidth + ' ' + viewHeight);
-        trail.setAttribute('preserveAspectRatio', 'none');
-
-        // Une courbe souple relie le point final au centre du champ organique.
-        const dx = end.x - start.x;
-        const dy = end.y - start.y;
-        const curve = 'M' + start.x.toFixed(2) + ' ' + start.y.toFixed(2)
-          + 'C' + (start.x + dx * .36).toFixed(2) + ' ' + (start.y + dy * .18 - 22).toFixed(2)
-          + ' ' + (start.x + dx * .73).toFixed(2) + ' ' + (start.y + dy * .81 + 15).toFixed(2)
-          + ' ' + end.x.toFixed(2) + ' ' + end.y.toFixed(2);
-        line.setAttribute('d', curve);
-        glow.setAttribute('d', curve);
-        const length = line.getTotalLength();
-        for (const path of [line, glow]) {
-          path.style.strokeDasharray = String(length);
-          path.style.strokeDashoffset = String(length);
+        if (![brand, punctuation, overlay, particle, trail, line, glow, dot].every(Boolean)) {
+          body.classList.remove('is-opening');
+          return;
         }
-        particle.style.left = start.x + 'px';
-        particle.style.top = start.y + 'px';
-        body.classList.add('intro-go');
 
-        const started = performance.now();
-        const clamp = (n) => Math.max(0, Math.min(1, n));
-        let frame = 0;
-        let finished = false;
+        let done = false, frame = 0, timeout = 0, travel = null;
         const cleanup = () => {
-          if (finished) return;
-          finished = true;
+          if (done) return;
+          done = true;
           cancelAnimationFrame(frame);
+          clearTimeout(timeout);
+          window.removeEventListener('resize', cleanup);
           overlay.removeEventListener('pointerdown', cleanup);
+          brand.removeEventListener('pointerdown', cleanup);
+          travel?.cancel();
+          brand.style.removeProperty('transform');
+          brand.style.removeProperty('will-change');
           body.classList.remove('is-opening', 'intro-go');
-          trail.style.opacity = '';
-          particle.style.opacity = '';
-          overlay.style.removeProperty('--intro-dx');
-          overlay.style.removeProperty('--intro-dy');
         };
-        // Un toucher peut passer directement à l'application sans décaler son interface.
-        overlay.addEventListener('pointerdown', cleanup, {once:true});
-        function animatePoint(now) {
-          if (finished) return;
-          const seconds = (now - started) / 1000;
-          // Le point termine sa course AVANT le mouvement du logo (1,15 s).
-          const fraction = clamp((seconds - .28) / .77);
-          const eased = fraction * fraction * (3 - 2 * fraction);
-          const position = line.getPointAtLength(eased * length);
-          particle.style.left = position.x + 'px';
-          particle.style.top = position.y + 'px';
-          particle.style.opacity = String(
-            seconds < .25 ? 0 : seconds < 1.04 ? 1 : 1 - clamp((seconds - 1.04) / .34)
-          );
-          // La trace s'efface au moment où le point est repris par le SVG.
-          for (const path of [line, glow]) path.style.strokeDashoffset = String(length * (1 - eased));
-          trail.style.opacity = String(
-            seconds < .27 ? 0 : seconds < 1.02 ? .7 : .7 * (1 - clamp((seconds - 1.02) / .38))
-          );
-          if (seconds < 1.44) frame = requestAnimationFrame(animatePoint);
-        }
-        frame = requestAnimationFrame(animatePoint);
-        window.setTimeout(cleanup, 2580);
+        overlay.addEventListener('pointerdown', cleanup, { once: true });
+        brand.addEventListener('pointerdown', cleanup, { once: true });
+        window.addEventListener('resize', cleanup, { once: true });
+
+        const start = () => {
+          if (done) return;
+          try {
+            // Le header conserve sa place : on déplace son véritable logo sans toucher au layout.
+            const target = brand.getBoundingClientRect();
+            const width = document.documentElement.clientWidth;
+            const height = window.innerHeight;
+            const dx = width / 2 - (target.left + target.width / 2);
+            const dy = height / 2 - (target.top + target.height / 2);
+            const initial = `translate3d(${dx}px, ${dy}px, 0) scale(1.6)`;
+            brand.style.transform = initial;
+            body.classList.add('intro-go');
+
+            const rect = punctuation.getBoundingClientRect();
+            const endRect = dot.getBoundingClientRect();
+            const origin = { x: rect.left + rect.width * .52, y: rect.top + rect.height * .81 };
+            const end = { x: endRect.left + endRect.width / 2, y: endRect.top + endRect.height / 2 };
+            trail.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            trail.setAttribute('preserveAspectRatio', 'none');
+            const vx = end.x - origin.x, vy = end.y - origin.y;
+            const curve = `M${origin.x} ${origin.y} C${origin.x + vx * .3} ${origin.y + vy * .15 - 14} ${origin.x + vx * .8} ${origin.y + vy * .83 + 12} ${end.x} ${end.y}`;
+            line.setAttribute('d', curve);
+            glow.setAttribute('d', curve);
+            const length = line.getTotalLength();
+            for (const path of [line, glow]) {
+              path.style.strokeDasharray = String(length);
+              path.style.strokeDashoffset = String(length);
+            }
+            particle.style.left = origin.x + 'px';
+            particle.style.top = origin.y + 'px';
+
+            // Le point arrive à 1,1 s. Le mot part ensuite vers sa vraie place.
+            travel = brand.animate([
+              { transform: initial, offset: 0 },
+              { transform: initial, offset: .45, easing: 'cubic-bezier(.38, 0, .13, 1)' },
+              { transform: 'translate3d(0px, 0px, 0px) scale(1)', offset: 1 }
+            ], { duration: 2450, fill: 'forwards' });
+            travel.onfinish = () => {
+              brand.style.removeProperty('transform');
+              travel.cancel();
+            };
+            const started = performance.now();
+            const clamp = (n) => Math.max(0, Math.min(1, n));
+            const animatePoint = (now) => {
+              if (done) return;
+              const seconds = (now - started) / 1000;
+              const fraction = clamp((seconds - .25) / .85);
+              const eased = fraction * fraction * (3 - 2 * fraction);
+              const position = line.getPointAtLength(eased * length);
+              particle.style.left = position.x + 'px';
+              particle.style.top = position.y + 'px';
+              particle.style.opacity = String(seconds < .22 ? 0 : seconds < 1.06 ? 1 : 1 - clamp((seconds - 1.06) / .32));
+              for (const path of [line, glow]) path.style.strokeDashoffset = String(length * (1 - eased));
+              trail.style.opacity = String(seconds < .23 ? 0 : seconds < 1.05 ? .7 : .7 * (1 - clamp((seconds - 1.05) / .35)));
+              if (seconds < 1.48) frame = requestAnimationFrame(animatePoint);
+            };
+            frame = requestAnimationFrame(animatePoint);
+            timeout = window.setTimeout(cleanup, 2580);
+          } catch (_) {
+            cleanup();
+          }
+        };
+        requestAnimationFrame(() => requestAnimationFrame(start));
       }
 
       recoverSession();
