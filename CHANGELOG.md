@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.12.1] - 2026-11-15
+
+- Sur les téléphones en paysage, l'interface occupe désormais deux colonnes : champ organique à gauche, durées et commandes à droite.
+- SVG adapté à la hauteur disponible, contrôles redimensionnés et zones tactiles conservées, sans défilement horizontal.
+- Position du champ stable pendant la séance, la pause et la reprise.
+- Portrait et affichage ordinateur inchangés.
+- Tests responsives ajoutés (480 × 320, 568 × 320, 667 × 375 et 844 × 390), rotation portrait/paysage et transitions des commandes.
+
 ## [3.12.0] - 2026-11-15
 
 - Visuel « Orbites dorées vers le silence » validé, adapté en 1200 × 630 et intégré aux aperçus Open Graph et Twitter.

@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.12.0').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.12.1').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -81,7 +81,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.12.0').is_visible()
+ assert page.get_by_text('Version 3.12.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -209,7 +209,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.12.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.12.1' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')
@@ -225,6 +225,64 @@ with sync_playwright() as p:
  # screenshot skipped in CI
  assert dpage.locator('#start').is_visible()
  desktop.close()
+ # Responsive: portrait stays identical; landscape uses two real columns.
+ responsive=browser.new_context(viewport={'width':390,'height':844},device_scale_factor=1,is_mobile=True,has_touch=True,service_workers='block')
+ rp_layout=responsive.new_page()
+ rp_layout.on('pageerror', lambda exc: errors.append('responsive: '+str(exc)))
+ rp_layout.goto(f'http://127.0.0.1:{PORT}/meditation/',wait_until='domcontentloaded')
+ rp_layout.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
+ assert rp_layout.locator('main').evaluate("el=>getComputedStyle(el).display==='flex'")
+ portrait_geometry=geometry(rp_layout)
+ portrait_positions=rp_layout.evaluate("""() => {
+   const a=document.querySelector('#peek').getBoundingClientRect();
+   const b=document.querySelector('.control-stage').getBoundingClientRect();
+   return [a.bottom,b.top];
+ }""")
+ assert portrait_positions[1]>portrait_positions[0],portrait_positions
+ for width,height in [(844,390),(667,375),(568,320),(480,320)]:
+  rp_layout.set_viewport_size({'width':width,'height':height})
+  rp_layout.wait_for_timeout(80)
+  measured=rp_layout.evaluate("""() => {
+   const rect = selector => {
+      const b=document.querySelector(selector).getBoundingClientRect();
+      return {left:b.left,top:b.top,right:b.right,bottom:b.bottom,width:b.width,height:b.height,
+              centerY:(b.top+b.bottom)/2};
+   };
+   return {grid:getComputedStyle(document.querySelector('main')).display,
+           visual:rect('#peek'),controls:rect('.control-stage'),
+           start:rect('#start'),width:innerWidth,height:innerHeight,
+           scrollWidth:document.documentElement.scrollWidth,
+           scrollHeight:document.documentElement.scrollHeight};
+ }""")
+  assert measured['grid']=='grid',measured
+  assert measured['visual']['right'] < measured['controls']['left'],measured
+  assert abs(measured['visual']['centerY']-measured['controls']['centerY'])<3,measured
+  assert measured['start']['left']>=0 and measured['start']['right']<=width+1,measured
+  assert measured['start']['bottom']<=height+1,measured
+  assert measured['scrollWidth']<=width+1,measured
+  assert measured['scrollHeight']<=height+3,measured
+  print('LANDSCAPE COLUMNS:',width,height,'OK')
+ # Landscape mode must not move the animated field or header on state changes.
+ rp_layout.set_viewport_size({'width':844,'height':390})
+ rp_layout.locator('#settingsButton').click()
+ rp_layout.locator('#delay').uncheck()
+ rp_layout.locator('#closeSettings').click()
+ landscape_geometry=geometry(rp_layout)
+ rp_layout.locator('#start').click()
+ assert_geometry(landscape_geometry,geometry(rp_layout),'landscape start')
+ assert rp_layout.locator('#stop').is_visible()
+ rp_layout.locator('#pauseResume').click()
+ assert_geometry(landscape_geometry,geometry(rp_layout),'landscape pause')
+ rp_layout.locator('#pauseResume').click()
+ assert_geometry(landscape_geometry,geometry(rp_layout),'landscape resume')
+ rp_layout.locator('#stop').click()
+ assert_geometry(landscape_geometry,geometry(rp_layout),'landscape stop')
+ # A rotation back to portrait must restore exactly the original layout.
+ rp_layout.set_viewport_size({'width':390,'height':844})
+ rp_layout.wait_for_timeout(80)
+ assert rp_layout.locator('main').evaluate("el=>getComputedStyle(el).display==='flex'")
+ assert_geometry(portrait_geometry,geometry(rp_layout),'portrait after rotation')
+ responsive.close()
  # Reduced motion follows accessibility preference
  reduced=browser.new_context(viewport={'width':360,'height':780},reduced_motion='reduce',service_workers='block')
  rpage=reduced.new_page()
