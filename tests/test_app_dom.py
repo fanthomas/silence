@@ -57,7 +57,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.12.1').is_visible()
+ assert page.get_by_text('Version 3.13.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
@@ -153,12 +153,15 @@ with sync_playwright() as p:
  assert page.locator('#settle').count()==0
  print('SILENT RETURN REMOVED: OK')
  page.locator('#settingsButton').click()
+ assert page.locator('#marker').count()==0
  page.locator('#dark').check()
- assert not page.locator('#motion').is_checked()
+ assert page.locator('#motion').is_checked()
+ page.locator('#motion').uncheck()
+ assert page.locator('#dark').is_checked()
  page.locator('#motion').check()
- assert not page.locator('#dark').is_checked()
+ assert page.locator('#dark').is_checked()
  page.locator('#closeSettings').click()
- print('EXCLUSIVE modes: OK')
+ print('INDEPENDENT VISUAL MODES: OK')
  # Simulated time for fixed 10-min automatic return
  page.locator('.duration[data-minutes="10"]').click()
  page.locator('#settingsButton').click()
@@ -166,19 +169,24 @@ with sync_playwright() as p:
  page.clock.install()
  page.locator('#start').click()
  assert page.locator('#setup').is_hidden()
- page.clock.fast_forward(601000)
+ page.clock.fast_forward(21000)
+ assert page.locator('#veil').evaluate("el=>el.classList.contains('active')"), 'The screen should darken after 20 seconds without depending on audio'
+ page.locator('#veil').click()
+ assert not page.locator('#veil').evaluate("el=>el.classList.contains('active')"), 'Tap should show the screen again'
+ page.clock.fast_forward(580000)
  assert page.locator('#setup').is_visible(), 'Auto completion must return to setup'
  assert page.locator('#stateText').is_hidden()
  print('AUTO END after 10 min -> setup: OK')
  mobile.close()
- # Regression: saved both toggles true and rejected sound -> default bol
+ # Regression: both display modes stay active; unknown sound falls back to bol
  migration=browser.new_context(viewport={'width':360,'height':780})
  p2=migration.new_page(); p2.on('pageerror',lambda error: errors.append('migration: '+str(error)))
  saved={'silence.settings.v2':json.dumps({'mode':'free','minutes':15,'motion':True,'dark':True,'tone':'invalid-old-tone','delay':False,'volume':60})}
  init(p2,saved)
  p2.locator('#settingsButton').click()
  assert p2.locator('#motion').is_checked()
- assert not p2.locator('#dark').is_checked()
+ assert p2.locator('#dark').is_checked()
+ assert p2.locator('#marker').count()==0
  assert p2.locator('#tone').input_value()=='bol'
  print('MIGRATION v3.4: OK')
  migration.close()

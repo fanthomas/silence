@@ -45,6 +45,7 @@ jobs:
           test -f meditation/icons/icon-512.png
           node --check meditation/app.js
           node --check meditation/sw.js
+          node tests/test_cues.js
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

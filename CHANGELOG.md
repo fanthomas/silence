@@ -2,6 +2,15 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.13.0] - 2026-11-15
+
+- Durées fixes : un seul repère sonore à la durée choisie, sans avertissement à 10 minutes.
+- Mode Libre : repère répété toutes les 10 minutes sans arrêt automatique ; programmation renouvelée entre deux repères et recalculée après une pause.
+- Option obsolète « Repère supplémentaire » retirée et anciennes préférences nettoyées.
+- Réglages visuels clarifiés : « Cercle vivant » et « Écran noir après 20 s » compatibles, et distinction explicite avec « Garder l'écran allumé ».
+- L'assombrissement fonctionne indépendamment de l'audio et suspend le calcul SVG tant que l'écran est masqué.
+- Tests ciblés sur la programmation des sons, les pauses, le mode fixe et l'écran noir.
+
 ## [3.12.1] - 2026-11-15
 
 - Sur les téléphones en paysage, l'interface occupe désormais deux colonnes : champ organique à gauche, durées et commandes à droite.

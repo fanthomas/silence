@@ -36,7 +36,7 @@
   <meta name="application-name" content="silence.">
   <title>silence. | un moment à soi</title>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"silence.","url":"https://mebius.cc/meditation/","description":"Application de méditation minimaliste, avec repères sonores discrets et fonctionnement hors connexion.","applicationCategory":"LifestyleApplication","operatingSystem":"Web","inLanguage":"fr","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
-  <link rel="stylesheet" href="./styles.css?v=3.12.1">
+  <link rel="stylesheet" href="./styles.css?v=3.13.0">
 </head>
 <body class="is-opening">
   <div class="opening-overlay" aria-hidden="true">
@@ -161,10 +161,6 @@
       </button>
     </div>
     <div class="settings">
-      <div class="setting" id="markerRow">
-        <span class="setting-label" id="markerLabel">Repère à 15 minutes</span>
-        <label class="switch" aria-label="Activer le repère supplémentaire"><input id="marker" type="checkbox" checked><span class="switch-track"></span></label>
-      </div>
       <div class="setting">
         <span class="setting-label">Départ différé · 10 s</span>
         <label class="switch" aria-label="Démarrer après dix secondes"><input id="delay" type="checkbox" checked><span class="switch-track"></span></label>
@@ -187,19 +183,19 @@
         <label class="switch" aria-label="Activer le mouvement doux du cercle"><input id="motion" type="checkbox" checked><span class="switch-track"></span></label>
       </div>
       <div class="setting">
-        <span class="setting-label">Écran noir · 20 s</span>
-        <label class="switch" aria-label="Obscurité automatique"><input id="dark" type="checkbox" checked><span class="switch-track"></span></label>
+        <div><span class="setting-label">Écran noir après 20 s</span><span class="setting-note">Masque l'animation. Toucher pour revenir.</span></div>
+        <label class="switch" aria-label="Masquer l'affichage après 20 secondes"><input id="dark" type="checkbox"><span class="switch-track"></span></label>
       </div>
       <div class="setting" id="wakeRow">
-        <div><span class="setting-label">Garder l'écran actif</span><span class="setting-note" id="wakeHint">Utile pour les sons sur téléphone</span></div>
+        <div><span class="setting-label">Garder l'écran allumé</span><span class="setting-note" id="wakeHint">Limite les interruptions sonores sur téléphone</span></div>
         <label class="switch" aria-label="Empêcher la mise en veille de l'écran"><input id="wake" type="checkbox" checked><span class="switch-track"></span></label>
       </div>
     </div>
     <button id="installButton" class="install-button hidden" type="button">Installer silence.</button>
-    <p class="version">Version 3.12.1</p>
+    <p class="version">Version 3.13.0</p>
   </dialog>
   <button type="button" id="veil" class="veil" aria-label="Afficher les commandes"><span class="veil-dot" aria-hidden="true"></span></button>
   <p class="boot-alert" role="alert">L’application n’a pas démarré. Vérifie que <code>app.js</code> est bien sur ton hébergement, puis recharge la page.</p>
-  <script src="./app.js?v=3.12.1" defer></script>
+  <script src="./app.js?v=3.13.0" defer></script>
 </body>
 </html>

@@ -10,10 +10,10 @@
 
 ## Méditer, sans surveiller le temps.
 
-Avec **silence.**, tu choisis une durée ou tu médites librement. Après **10 minutes**, un son doux t’indique simplement que ton minimum est atteint. Tu peux continuer, sans ouvrir les yeux.
+Avec **silence.**, tu choisis une durée ou tu médites librement, sans regarder l'heure.
 
-- **Libre**, avec un repère à 10 minutes et un second facultatif à 15 minutes.
-- **10, 12, 15 ou 20 minutes**, pour des séances à durée fixe.
+- **Libre** : un repère doux toutes les dix minutes, sans arrêt automatique.
+- **10, 12, 15 ou 20 minutes** : un seul repère à la fin de la durée choisie, puis retour à l'accueil.
 - **Trois repères discrets** : Bol feutré, Bois doux et Goutte douce, sans musique ni ambiance sonore.
 - **Un champ de courbes lumineuses**, animé en SVG : les pensées traversent les ondes tandis qu'un point central reste immobile et respire doucement.
 

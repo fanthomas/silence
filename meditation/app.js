@@ -6,7 +6,6 @@
         'status', 'title', 'description', 'stateText', 'clock', 'peek', 'fieldSvg', 'fieldSheen', 'fieldCenterDot', 'fieldVeilOuter', 'fieldVeilInner',
         'fieldWaveOuter', 'fieldWaveOuterFine', 'fieldWaveMiddle', 'fieldWaveMiddleFine',
         'fieldWaveSatellite', 'fieldWaveInner', 'fieldWaveInnerFine', 'fieldWaveCore', 'fieldWaveCoreFine', 'setup', 'modeFree',
-        'markerRow', 'markerLabel', 'marker',
         'delay', 'tone', 'volume', 'testSound', 'motion', 'dark', 'wake', 'wakeHint', 'start', 'activeControls',
         'pauseResume', 'stop',
         'audioRecover', 'audioRecoverText', 'soundStatus', 'rearm', 'notice', 'veil', 'preferences', 'settingsButton', 'closeSettings', 'installButton'
@@ -16,12 +15,11 @@
       const SESSION_KEY = 'silence.session.v2';
       const MINUTE = 60_000;
       const supportsWakeLock = !!(navigator.wakeLock && typeof navigator.wakeLock.request === 'function');
-      const defaults = { mode: 'free', minutes: 15, marker: true, delay: true, tone: 'bol', volume: 65, motion: true, dark: false, wake: true };
+      const defaults = { mode: 'free', minutes: 15, delay: true, tone: 'bol', volume: 65, motion: true, dark: false, wake: true };
       const savedSettings = readStorage(SETTINGS_KEY, {});
       const settings = { ...defaults, ...savedSettings };
-      // Ces deux options sont incompatibles : l'écran noir masquerait l'animation.
-      // Pour les anciens réglages qui avaient les deux, privilégier le cercle vivant.
-      if (settings.motion && settings.dark) settings.dark = false;
+      // L'écran noir, l'animation et le maintien de l'écran allumé sont indépendants.
+      delete settings.marker; // Ancienne option supplémentaire, supprimée.
       if (!['free', 'fixed'].includes(settings.mode)) settings.mode = 'free';
       if (![10, 12, 15, 20].includes(settings.minutes)) settings.minutes = 15;
       settings.tone = ({ velours: 'bol', cristal: 'bol', bois: 'bambou', foret: 'bol', oiseau: 'bol', sousbois: 'bol', pepiement: 'bol' })[settings.tone] || settings.tone;
@@ -37,6 +35,7 @@
       let soundNodes = [];
       let previewNodes = [];
       let audioScheduleToken = 0;
+      let nextSoundRefreshAt = 0;
       let previewToken = 0;
       const bufferCache = new Map();
       const pendingBuffers = new Map();
@@ -191,36 +190,39 @@
         collection.length = 0;
       }
       function stopPreview() { previewToken++; stopCollection(previewNodes); }
-      function stopAudio() { audioScheduleToken++; stopCollection(soundNodes); stopPreview(); }
+      function stopAudio() { audioScheduleToken++; nextSoundRefreshAt = 0; stopCollection(soundNodes); stopPreview(); }
+      // Mode libre : une sonnerie chaque 10 min. Les huit prochaines sont
+      // prévues par Web Audio ; le planning est renouvelé entre deux repères.
+      function cueDates(mode, start, minutes, now) {
+        if (mode === 'fixed') {
+          const end = start + minutes * MINUTE;
+          return end > now + 100 ? [end] : [];
+        }
+        const interval = 10 * MINUTE;
+        const next = Math.max(1, Math.floor((now + 100 - start) / interval) + 1);
+        return Array.from({length: 8}, (_, i) => start + (next + i) * interval);
+      }
       async function scheduleSounds() {
         stopCollection(soundNodes);
         const token = ++audioScheduleToken;
+        nextSoundRefreshAt = 0;
         if (!soundArmed || !audioContext || audioContext.state !== 'running' || phase !== 'running') return;
         const ctx = audioContext, selected = settings.tone;
         try {
           const buffer = await loadSound(ctx, selected);
           if (token !== audioScheduleToken || phase !== 'running' || !soundArmed || ctx.state !== 'running') return;
           const now = Date.now();
-          const playAt = date => ctx.currentTime + Math.max(.08, (date - now) / 1000);
-          const marker = (date, strength) => {
-            if (date > now + 100) playSound(ctx, buffer, playAt(date), strength, soundNodes);
-          };
-          const ending = date => {
-            if (date <= now + 100) return;
-            // Un seul repère bref, sans deuxième son prolongé.
-            playSound(ctx, buffer, playAt(date), .88, soundNodes);
-          };
-          if (settings.mode === 'free') {
-            marker(startAt + 10 * MINUTE, .67);
-            if (settings.marker) ending(startAt + 15 * MINUTE);
-          } else {
-            if (settings.marker && settings.minutes > 10) marker(startAt + 10 * MINUTE, .67);
-            ending(startAt + sessionDurationMs());
+          const dates = cueDates(settings.mode, startAt, settings.minutes, now);
+          for (const date of dates) {
+            playSound(ctx, buffer, ctx.currentTime + Math.max(.08, (date - now) / 1000), .88, soundNodes);
           }
+          // Renouveler deux minutes avant un repère, jamais exactement à son déclenchement.
+          if (settings.mode === 'free') nextSoundRefreshAt = dates[5] - 2 * MINUTE;
         } catch (error) {
           if (token === audioScheduleToken) {
             soundArmed = false;
             audioNeedsRecovery = true;
+            nextSoundRefreshAt = 0;
             showNotice('Impossible de programmer le son. Réactive-le depuis la séance.');
             render();
           }
@@ -274,12 +276,16 @@
       function hideVeil() {
         el.veil.classList.remove('active');
         clearTimeout(dimTimeout);
+        syncFieldAnimation();
       }
       function scheduleDim() {
         hideVeil();
-        if (!settings.dark || !['running'].includes(phase) || !soundArmed || document.visibilityState !== 'visible') return;
+        if (!settings.dark || phase !== 'running' || document.visibilityState !== 'visible') return;
         dimTimeout = setTimeout(() => {
-          if (settings.dark && ['running'].includes(phase) && soundArmed && document.visibilityState === 'visible') el.veil.classList.add('active');
+          if (settings.dark && phase === 'running' && document.visibilityState === 'visible') {
+            el.veil.classList.add('active');
+            syncFieldAnimation();
+          }
         }, 20_000);
       }
       function updateClock() {
@@ -376,7 +382,8 @@
       }
       function syncFieldAnimation() {
         const enabled = settings.motion && phase !== 'paused'
-          && document.visibilityState === 'visible' && !fieldMotionPreference?.matches;
+          && document.visibilityState === 'visible' && !el.veil.classList.contains('active')
+          && !fieldMotionPreference?.matches;
         el.peek.classList.toggle('is-field-active', enabled);
         if (!fieldHasDrawn) paintField(0);
         if (enabled && !fieldFrameId) fieldFrameId = requestAnimationFrame(frameField);
@@ -388,9 +395,6 @@
         document.querySelectorAll('.duration').forEach((button) => {
           button.setAttribute('aria-pressed', String(settings.mode === 'fixed' && Number(button.dataset.minutes) === settings.minutes));
         });
-        el.markerRow.classList.toggle('hidden', settings.mode === 'fixed' && settings.minutes === 10);
-        el.markerLabel.textContent = settings.mode === 'free' ? 'Repère à 15 minutes' : 'Repère à 10 minutes';
-        el.marker.checked = settings.marker;
         el.delay.checked = settings.delay;
         el.tone.value = settings.tone;
         el.volume.value = String(settings.volume);
@@ -429,6 +433,11 @@
           elapsedAtPause = sessionDurationMs();
           completeSession();
           return;
+        }
+        if (settings.mode === 'free' && nextSoundRefreshAt > 0 && Date.now() >= nextSoundRefreshAt
+            && soundArmed && audioContext?.state === 'running') {
+          nextSoundRefreshAt = 0;
+          void scheduleSounds();
         }
         if (lastStage !== stage()) render();
         else updateClock();
@@ -515,10 +524,10 @@
         if (!Number.isFinite(saved.startAt) || !Number.isFinite(saved.savedAt) || Date.now() - saved.savedAt > 5 * 60 * MINUTE) return;
         if (!saved.settings || !['free', 'fixed'].includes(saved.settings.mode)) return;
         Object.assign(settings, saved.settings);
+        delete settings.marker;
         if (![10, 12, 15, 20].includes(settings.minutes)) settings.minutes = 15;
         settings.tone = ({ velours: 'bol', cristal: 'bol', bois: 'bambou', foret: 'bol', oiseau: 'bol', sousbois: 'bol', pepiement: 'bol' })[settings.tone] || settings.tone;
         if (!['bol', 'bambou', 'goutte'].includes(settings.tone)) settings.tone = 'bol';
-        if (settings.motion && settings.dark) settings.dark = false;
         settings.volume = Math.max(0, Math.min(100, Number(settings.volume) || 0));
         phase = saved.phase;
         startAt = saved.startAt;
@@ -561,12 +570,11 @@
         settings.minutes = Number(button.dataset.minutes);
         saveSettings(); renderSetup(); render();
       }));
-      for (const key of ['marker', 'delay', 'motion', 'dark', 'wake']) {
+      for (const key of ['delay', 'motion', 'dark', 'wake']) {
         el[key].addEventListener('change', () => {
           settings[key] = el[key].checked;
-          if (key === 'motion' && settings.motion) settings.dark = false;
-          if (key === 'dark' && settings.dark) settings.motion = false;
           saveSettings(); renderSetup(); render();
+          if (key === 'dark') scheduleDim();
         });
       }
       el.volume.addEventListener('input', () => { settings.volume = Number(el.volume.value); saveSettings(); });

@@ -35,7 +35,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.12.1').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.13.0').is_hidden() # settings not open
  assert page.locator('body').evaluate("(el)=>el.classList.contains('intro-go')"), "Intro must start on idle page"
  assert page.locator('.opening-word').evaluate("(el)=>el.getAnimations().some(anim=>anim.animationName==='opening-word')"), "Brand must travel from center to header"
  assert page.locator('.visual').evaluate("(el)=>getComputedStyle(el,'::before').animationName==='intro-ripple'"), "First water ripple must run"
@@ -81,7 +81,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.12.1').is_visible()
+ assert page.get_by_text('Version 3.13.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -189,27 +189,34 @@ with sync_playwright() as p:
  assert page.locator('#gentleEnd').count()==0
  assert page.locator('#settle').count()==0
  print('SILENT RETURN REMOVED: OK')
- # toggles mutually exclusive
+ # Les options visuelles sont indépendantes, et le repère supplémentaire a disparu.
  page.locator('#settingsButton').click()
+ assert page.locator('#marker').count()==0
+ assert page.locator('#markerRow').count()==0
+ assert page.get_by_text('Écran noir après 20 s').is_visible()
+ assert page.get_by_text("Garder l'écran allumé").is_visible()
  page.locator('#dark').check()
- assert not page.locator('#motion').is_checked()
+ assert page.locator('#motion').is_checked()
+ page.locator('#motion').uncheck()
+ assert page.locator('#dark').is_checked()
  page.locator('#motion').check()
- assert not page.locator('#dark').is_checked()
+ assert page.locator('#dark').is_checked()
  page.locator('#closeSettings').click()
- print('EXCLUSIVE modes: OK')
- # Regression: saved both on, and old tone, migrate to bol
+ print('INDEPENDENT DISPLAY MODES: OK')
+ # Regression: anciens paramètres avec les deux options actives
  page.evaluate('''() => localStorage.setItem('silence.settings.v2',JSON.stringify({mode:'free',minutes:15,motion:true,dark:true,tone:'invalid-old-tone',delay:false,volume:60}))''')
  page.reload(wait_until='networkidle')
  page.locator('#settingsButton').click()
  assert page.locator('#motion').is_checked()
- assert not page.locator('#dark').is_checked()
+ assert page.locator('#dark').is_checked()
+ assert page.locator('#marker').count()==0
  assert page.locator('#tone').input_value()=='bol'
  page.locator('#closeSettings').click()
- print('MIGRATION v3.4: OK')
+ print('MIGRATION SETTINGS: OK')
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.12.1' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.13.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')
