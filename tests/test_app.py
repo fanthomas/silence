@@ -41,16 +41,11 @@ with sync_playwright() as p:
  assert page.locator('#openingParticle').count()==0
  assert page.locator('#openingTrail').count()==0
  assert page.locator('.opening-overlay').evaluate("""el => {
-   const fade=el.getAnimations().find(a=>a.animationName==='opening-screen');
-   if(!fade)return false;
-   const old=fade.currentTime;fade.pause();
-   fade.currentTime=1000;
-   const before=Number(getComputedStyle(el,'::before').opacity);
-   fade.currentTime=1740;
-   const after=Number(getComputedStyle(el,'::before').opacity);
-   fade.currentTime=old;fade.play();
-   return before>.99 && after<.99;
- }"""), 'The circle should remain hidden until the logo nearly reaches the header'
+   const style = getComputedStyle(el, '::before');
+   return style.animationName === 'opening-screen' &&
+     style.animationDelay === '1.5s' &&
+     style.animationDuration === '0.3s';
+ }"""), 'The field must stay masked until the logo nearly reaches the header'
  assert page.locator('.brand').evaluate("""brand => {
    const a=brand.getAnimations().find(x=>x.effect?.getKeyframes().length===2);
    if(!a)return false;
