@@ -2,6 +2,13 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.15.4] - 2026-11-16
+
+- Au démarrage, « silence. » est placé au centre avant le premier rendu, puis reste brièvement visible avant son déplacement direct vers l'en-tête, pour limiter les animations masquées par l'écran de lancement Android.
+- En PWA installée, l'introduction est rejouée lors d'un retour depuis l'arrière-plan après au moins trois secondes, uniquement si aucune séance n'est en cours.
+- Suppression du rechargement automatique déclenché par la mise à jour du service worker pendant l'ouverture ; l'actualisation prend effet à la navigation suivante.
+- L'icône Android et son écran de lancement natif ne sont pas modifiés ; tests d'ouverture mis à jour.
+
 ## [3.15.3] - 2026-11-16
 
 - Le cercle de méditation ne se dévoile plus pendant le déplacement du logo « silence. ». L'apparition est retardée pour éviter les visuels concurrents au démarrage.

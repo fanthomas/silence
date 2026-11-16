@@ -36,13 +36,15 @@ def init(page, stored=None):
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
  if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
   page.wait_for_function("document.body.classList.contains('intro-go')",timeout=1200)
+  page.wait_for_function("""() => document.querySelector('.brand').getAnimations()
+    .some(a=>a.effect?.getKeyframes().length===2)""",timeout=2200)
   assert page.locator('.opening-word').count()==0
   assert page.locator('#openingParticle').count()==0
   assert page.locator('#openingTrail').count()==0
   assert page.locator('.opening-overlay').evaluate("""el => {
    const style = getComputedStyle(el, '::before');
    return style.animationName === 'opening-screen' &&
-     style.animationDelay === '1.5s' &&
+     style.animationDelay === '1.88s' &&
      style.animationDuration === '0.3s';
  }""")
   assert page.locator('.brand').evaluate("""brand => {
@@ -76,7 +78,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.15.3').is_visible()
+ assert page.get_by_text('Version 3.15.4').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

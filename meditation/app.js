@@ -626,15 +626,8 @@
       // La PWA vérifie les mises à jour à l'ouverture et au retour au premier plan.
       // Jamais de rechargement automatique pendant une méditation.
       if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-        let hadController = !!navigator.serviceWorker.controller;
-        let reloading = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (hadController && !reloading && phase === 'idle') {
-            reloading = true;
-            location.reload();
-          }
-          hadController = true;
-        });
+        // Le nouveau service worker prend effet à la prochaine navigation.
+        // Un rechargement forcé ici couperait l'introduction de la PWA.
         window.addEventListener('load', async () => {
           try {
             const registration = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
@@ -652,59 +645,110 @@
 
 
 
+      let cancelOpening = null;
+      let openingHasPlayed = false;
+      let lastHiddenAt = 0;
+
       function showOpening() {
         const body = document.body;
-        if (phase !== 'idle' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-          body.classList.remove('is-opening');
+        if (cancelOpening) cancelOpening();
+        if (phase !== 'idle' || document.visibilityState !== 'visible'
+            || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+            || el.preferences.open) {
+          body.classList.remove('is-opening', 'intro-go');
           return;
         }
         const brand = document.querySelector('.topbar .brand');
         const overlay = document.querySelector('.opening-overlay');
         if (!brand || !overlay) {
-          body.classList.remove('is-opening');
+          body.classList.remove('is-opening', 'intro-go');
           return;
         }
-        let done = false, timeout = 0, travel = null;
+
+        let done = false, delay = 0, safety = 0, frameA = 0, frameB = 0, travel = null;
         const cleanup = () => {
           if (done) return;
           done = true;
-          clearTimeout(timeout);
+          clearTimeout(delay);
+          clearTimeout(safety);
+          cancelAnimationFrame(frameA);
+          cancelAnimationFrame(frameB);
           window.removeEventListener('resize', cleanup);
           overlay.removeEventListener('pointerdown', cleanup);
           brand.removeEventListener('pointerdown', cleanup);
           travel?.cancel();
           brand.style.removeProperty('transform');
           body.classList.remove('is-opening', 'intro-go');
+          if (cancelOpening === cleanup) cancelOpening = null;
         };
+        cancelOpening = cleanup;
         overlay.addEventListener('pointerdown', cleanup, { once: true });
         brand.addEventListener('pointerdown', cleanup, { once: true });
         window.addEventListener('resize', cleanup, { once: true });
-        const start = () => {
-          if (done) return;
-          try {
-            // Un déplacement direct du logo entier, sans interaction avec le cercle.
-            const rect = brand.getBoundingClientRect();
-            const dx = document.documentElement.clientWidth / 2 - (rect.left + rect.right) / 2;
-            const dy = window.innerHeight / 2 - (rect.top + rect.bottom) / 2;
-            const initial = 'translate3d(' + dx + 'px, ' + dy + 'px, 0) scale(1.6)';
-            brand.style.transform = initial;
-            body.classList.add('intro-go');
-            travel = brand.animate([
-              { transform: initial },
-              { transform: 'translate3d(0px, 0px, 0px) scale(1)' }
-            ], {
-              duration: 1800,
-              easing: 'cubic-bezier(.42, 0, .22, 1)',
-              fill: 'forwards'
+
+        try {
+          // Le logo se positionne AVANT le premier rendu de l'interface.
+          // L'écran de lancement natif Android disparaît au premier rendu ;
+          // on laisse ensuite ce logo centré visible avant son déplacement.
+          const rect = brand.getBoundingClientRect();
+          const dx = document.documentElement.clientWidth / 2 - (rect.left + rect.right) / 2;
+          const dy = window.innerHeight / 2 - (rect.top + rect.bottom) / 2;
+          const initial = 'translate3d(' + dx + 'px, ' + dy + 'px, 0) scale(1.6)';
+          brand.style.transform = initial;
+          body.classList.add('is-opening', 'intro-go');
+          openingHasPlayed = true;
+
+          const begin = () => {
+            if (done) return;
+            if (document.visibilityState !== 'visible' || phase !== 'idle') {
+              cleanup();
+              return;
+            }
+            try {
+              travel = brand.animate([
+                { transform: initial },
+                { transform: 'translate3d(0px, 0px, 0px) scale(1)' }
+              ], {
+                duration: 1800,
+                easing: 'cubic-bezier(.42, 0, .22, 1)',
+                fill: 'forwards'
+              });
+              travel.onfinish = cleanup;
+            } catch (_) {
+              cleanup();
+            }
+          };
+
+          // Deux rendus + une courte présence statique pour éviter que le
+          // système Android ne masque toute l'animation durant son propre splash.
+          frameA = requestAnimationFrame(() => {
+            frameB = requestAnimationFrame(() => {
+              if (!done) delay = window.setTimeout(begin, 350);
             });
-            travel.onfinish = cleanup;
-            timeout = window.setTimeout(cleanup, 2000);
-          } catch (_) {
-            cleanup();
-          }
-        };
-        requestAnimationFrame(() => requestAnimationFrame(start));
+          });
+          safety = window.setTimeout(cleanup, 2600);
+        } catch (_) {
+          cleanup();
+        }
       }
+
+      // Une PWA déjà en mémoire revient au premier plan sans recharger app.js.
+      // Réanimer seulement après un vrai retour depuis l'arrière-plan, au repos.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          lastHiddenAt = Date.now();
+          cancelOpening?.();
+          return;
+        }
+        const installed = window.matchMedia?.('(display-mode: standalone)').matches
+          || navigator.standalone === true;
+        if (phase === 'idle' && !el.preferences.open
+            && (!openingHasPlayed || (installed && lastHiddenAt
+               && Date.now() - lastHiddenAt >= 3000))) {
+          lastHiddenAt = 0;
+          showOpening();
+        }
+      });
 
       recoverSession();
       renderSetup();

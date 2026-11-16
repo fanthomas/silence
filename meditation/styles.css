@@ -194,11 +194,11 @@
     body.is-opening .control-stage,
     body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
     body.is-opening.intro-go .opening-overlay::before {
-      animation: opening-screen .30s ease-in-out 1.50s both;
+      animation: opening-screen .30s ease-in-out 1.88s both;
     }
     body.is-opening.intro-go .control-stage,
     body.is-opening.intro-go .topbar .icon-button {
-      animation: opening-controls .28s ease-out 1.58s both;
+      animation: opening-controls .28s ease-out 1.98s both;
     }
     @keyframes opening-screen { from { opacity: 1; } to { opacity: 0; } }
     @keyframes opening-controls { from { opacity: 0; } to { opacity: 1; } }
