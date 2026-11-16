@@ -2,6 +2,12 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.15.3] - 2026-11-16
+
+- Le cercle de méditation ne se dévoile plus pendant le déplacement du logo « silence. ». L'apparition est retardée pour éviter les visuels concurrents au démarrage.
+- Le mouvement direct du logo, les réglages, le minuteur, les sons et l'icône de la PWA sont conservés.
+- Test navigateur ajouté pour vérifier que le voile reste opaque pendant la première partie du déplacement.
+
 ## [3.15.2] - 2026-11-16
 
 - Retour à une introduction simple : le logo complet part du centre et va directement en haut à gauche.

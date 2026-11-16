@@ -39,6 +39,17 @@ def init(page, stored=None):
   assert page.locator('.opening-word').count()==0
   assert page.locator('#openingParticle').count()==0
   assert page.locator('#openingTrail').count()==0
+  assert page.locator('.opening-overlay').evaluate("""el => {
+    const fade=el.getAnimations().find(a=>a.animationName==='opening-screen');
+    if(!fade)return false;
+    const old=fade.currentTime;fade.pause();
+    fade.currentTime=1000;
+    const before=Number(getComputedStyle(el,'::before').opacity);
+    fade.currentTime=1740;
+    const after=Number(getComputedStyle(el,'::before').opacity);
+    fade.currentTime=old;fade.play();
+    return before>.99 && after<.99;
+  }""")
   assert page.locator('.brand').evaluate("""brand => {
     const a=brand.getAnimations().find(x=>x.effect?.getKeyframes().length===2);
     if(!a)return false;
@@ -70,7 +81,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.15.2').is_visible()
+ assert page.get_by_text('Version 3.15.3').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
