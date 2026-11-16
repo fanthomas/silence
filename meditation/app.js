@@ -658,12 +658,9 @@
           body.classList.remove('is-opening');
           return;
         }
-
         const brand = document.querySelector('.topbar .brand');
-        const punctuation = brand?.querySelector('.brand-dot');
         const overlay = document.querySelector('.opening-overlay');
-        const centerDot = document.getElementById('fieldCenterDot');
-        if (![brand, punctuation, overlay, centerDot].every(Boolean)) {
+        if (!brand || !overlay) {
           body.classList.remove('is-opening');
           return;
         }
@@ -682,43 +679,26 @@
         overlay.addEventListener('pointerdown', cleanup, { once: true });
         brand.addEventListener('pointerdown', cleanup, { once: true });
         window.addEventListener('resize', cleanup, { once: true });
-
         const start = () => {
           if (done) return;
           try {
-            // Calcul au repos : le point typographique doit passer par le centre SVG.
-            const word = brand.getBoundingClientRect();
-            const mark = punctuation.getBoundingClientRect();
-            const center = centerDot.getBoundingClientRect();
-            const wordX = (word.left + word.right) / 2;
-            const wordY = (word.top + word.bottom) / 2;
-            const markOffsetX = mark.left + mark.width * .52 - wordX;
-            const markOffsetY = mark.top + mark.height * .81 - wordY;
-            const fieldX = center.left + center.width / 2;
-            const fieldY = center.top + center.height / 2;
-            const scale = 1.6;
-            const place = (x, y, s) => 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + s + ')';
-            const initial = place(document.documentElement.clientWidth / 2 - wordX,
-                                  window.innerHeight / 2 - wordY, scale);
-            const throughCenter = place(fieldX - wordX - markOffsetX * scale,
-                                        fieldY - wordY - markOffsetY * scale, scale);
+            // Un déplacement direct du logo entier, sans interaction avec le cercle.
+            const rect = brand.getBoundingClientRect();
+            const dx = document.documentElement.clientWidth / 2 - (rect.left + rect.right) / 2;
+            const dy = window.innerHeight / 2 - (rect.top + rect.bottom) / 2;
+            const initial = 'translate3d(' + dx + 'px, ' + dy + 'px, 0) scale(1.6)';
             brand.style.transform = initial;
             body.classList.add('intro-go');
-
-            // Tout le logo traverse le centre et laisse apparaître un second point.
-            // Le point du mot ne disparaît jamais ; aucun élément ne trace de ligne.
             travel = brand.animate([
-              { transform: initial, offset: 0 },
-              { transform: initial, offset: .05, easing: 'cubic-bezier(.5,0,.2,1)' },
-              { transform: throughCenter, offset: .42 },
-              { transform: throughCenter, offset: .52, easing: 'cubic-bezier(.52,0,.18,1)' },
-              { transform: place(0, 0, 1), offset: 1 }
-            ], { duration: 2500, fill: 'forwards' });
-            travel.onfinish = () => {
-              brand.style.removeProperty('transform');
-              travel.cancel();
-            };
-            timeout = window.setTimeout(cleanup, 2610);
+              { transform: initial },
+              { transform: 'translate3d(0px, 0px, 0px) scale(1)' }
+            ], {
+              duration: 1800,
+              easing: 'cubic-bezier(.42, 0, .22, 1)',
+              fill: 'forwards'
+            });
+            travel.onfinish = cleanup;
+            timeout = window.setTimeout(cleanup, 2000);
           } catch (_) {
             cleanup();
           }

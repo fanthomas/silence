@@ -177,7 +177,7 @@
     .install-button { margin-top: 17px; width: 100%; border: 1px solid rgba(227, 201, 171, .3); padding: 13px 16px; border-radius: 11px; background: transparent; color: #e8d8c4; font-size: 13px; }
 
 
-    /* Le logo traverse le centre sans laisser de trait ; son point reste visible. */
+    /* Le logo se déplace directement du centre à l'en-tête. */
     .opening-overlay {
       position: fixed; inset: 0; z-index: 20; overflow: hidden;
       isolation: isolate; pointer-events: auto;
@@ -194,33 +194,14 @@
     body.is-opening .control-stage,
     body.is-opening .topbar .icon-button { opacity: 0; pointer-events: none; }
     body.is-opening.intro-go .opening-overlay::before {
-      animation: opening-screen .60s ease-in-out 1.04s both;
-    }
-    body.is-opening .orb-wrap #fieldCenterDot {
-      animation: opening-center-arrive .28s ease-out 1.12s both;
+      animation: opening-screen .55s ease-in-out .55s both;
     }
     body.is-opening.intro-go .control-stage,
     body.is-opening.intro-go .topbar .icon-button {
-      animation: opening-controls .50s ease-out 1.95s both;
+      animation: opening-controls .42s ease-out 1.22s both;
     }
     @keyframes opening-screen { from { opacity: 1; } to { opacity: 0; } }
-    @keyframes opening-center-arrive {
-      from { opacity: 0; transform: scale(.65); }
-      to { opacity: 1; transform: scale(1); }
-    }
     @keyframes opening-controls { from { opacity: 0; } to { opacity: 1; } }
-    .visual::before, .visual::after {
-      content: ""; position: absolute; inset: 0; border-radius: 50%;
-      border: 1px solid rgba(218, 188, 155, .24);
-      pointer-events: none; opacity: 0;
-    }
-    body.is-opening.intro-go .visual::before { animation: intro-ripple 1.3s ease-out 1.24s both; }
-    body.is-opening.intro-go .visual::after { animation: intro-ripple 1.3s ease-out 1.42s both; }
-    @keyframes intro-ripple {
-      0% { opacity: 0; transform: scale(.68); }
-      26% { opacity: .44; }
-      100% { opacity: 0; transform: scale(1.28); }
-    }
     @media (max-height: 640px) { .quiet-center { min-height: 195px; } .orb-wrap { width: clamp(155px, 31svh, 220px); } .control-stage { margin-bottom: 10px; } }
     @media (max-width: 360px) { .page { padding-left: 18px; padding-right: 18px; } .choices { gap: 5px; } .choice { font-size: 12px; } }
     /* Téléphones en paysage : exploiter la largeur sans modifier le portrait.
