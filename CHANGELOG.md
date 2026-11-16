@@ -2,6 +2,12 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.15.5] - 2026-11-16
+
+- Remplacement de l'ancienne iconographie PWA par le visuel organique ambré choisi, produit directement à partir de l'image haute résolution.
+- Tailles optimisées pour Android, iOS et favicons ; rafraîchissement des URLs des ressources et du manifeste pour éviter les anciens caches.
+- Aucun changement du minuteur, de l'animation d'introduction ou des réglages.
+
 ## [3.15.4] - 2026-11-16
 
 - Au démarrage, « silence. » est placé au centre avant le premier rendu, puis reste brièvement visible avant son déplacement direct vers l'en-tête, pour limiter les animations masquées par l'écran de lancement Android.
