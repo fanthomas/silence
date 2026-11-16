@@ -1,8 +1,16 @@
+# CI/CD de Silence. : comment lire cette pipeline
+# Un push sur main lance les tests, puis le déploiement OVH, puis la release GitHub.
+# La publication est bloquée dès qu'une étape obligatoire échoue.
+# Le lancement manuel peut aussi vérifier la connexion OVH sans déployer.
+# Attention : une modification de ce fichier déclenche elle-même la pipeline.
+#
 name: silence. / tests et publication OVH
 
+# DÉCLENCHEURS : changements dans les chemins listés sur la branche main.
 on:
   push:
     branches: [main]
+    # Modifications pertinentes : application, tests, version, notes et outils de déploiement.
     paths:
       - "meditation/**"
       - "tests/**"
@@ -11,6 +19,7 @@ on:
       - ".github/workflows/ovh.yml"
       - ".github/scripts/deploy_ovh.py"
       - ".github/ovh_known_hosts"
+  # Lancement manuel depuis Actions : verify (connexion seule) ou deploy (publication).
   workflow_dispatch:
     inputs:
       mode:
@@ -20,22 +29,29 @@ on:
         default: verify
         required: true
 
+# SÉCURITÉ : lecture seule du dépôt par défaut ; une exception existe pour les releases.
 permissions:
   contents: read
 
+# EXÉCUTIONS : une seule pipeline de production à la fois, sans interrompre celle en cours.
 concurrency:
   group: silence-production
   cancel-in-progress: false
 
+# ORDRE DES JOBS : tests -> ovh -> release (conditionné par les réussites précédentes).
 jobs:
+  # 1/3 — INTÉGRATION CONTINUE : valider les fichiers et les comportements avant publication.
   tests:
     name: Contrôles avant publication
     runs-on: ubuntu-24.04
     steps:
+      # Récupérer exactement le commit à tester.
       - uses: actions/checkout@v4
+      # Préparer Node.js 22 pour les vérifications et tests JavaScript.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      # Existence des fichiers critiques, syntaxe des scripts et tests des sons.
       - name: Vérifier les fichiers et le JavaScript
         run: |
           test -f meditation/index.html
@@ -46,48 +62,65 @@ jobs:
           node --check meditation/app.js
           node --check meditation/sw.js
           node tests/test_cues.js
+      # Python est nécessaire aux tests Playwright.
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Installer un véritable Chromium headless pour tester l'application.
       - name: Installer Chromium pour les tests
         run: |
           python -m pip install --disable-pip-version-check playwright==1.56.0
           python -m playwright install --with-deps chromium
+      # Ces deux suites vérifient l'interface et les scénarios navigateur.
+      # Si l'un de ces scripts échoue, aucun fichier n'est déployé.
       - name: Tests navigateur
         run: |
           python tests/test_app_dom.py
           python tests/test_app.py
 
+  # 2/3 — DÉPLOIEMENT CONTINU : uniquement après la réussite du job tests.
   ovh:
     name: Connexion / déploiement SFTP limité
+    # needs impose l'ordre ; if interdit de déployer si les tests échouent.
     needs: tests
     if: ${{ needs.tests.result == 'success' }}
     runs-on: ubuntu-24.04
+    # Utilise l'environnement « production » et ses protections éventuelles.
     environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Paramiko permet la connexion sécurisée en SFTP.
       - run: python -m pip install --disable-pip-version-check paramiko==3.5.1
+      # Les identifiants OVH sont des secrets GitHub, pas du code en clair.
+      # Le script vérifie/publie uniquement le dossier distant meditation.
       - name: Vérifier / publier uniquement dans meditation
         env:
           OVH_SFTP_HOST: ${{ secrets.OVH_SFTP_HOST }}
           OVH_SFTP_USER: ${{ secrets.OVH_SFTP_USER }}
           OVH_SFTP_PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
           OVH_SFTP_KNOWN_HOSTS: ${{ secrets.OVH_SFTP_KNOWN_HOSTS }}
+          # Push : mode deploy ; lancement manuel : verify ou deploy selon le choix.
           DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'deploy' }}
         run: python .github/scripts/deploy_ovh.py "$DEPLOY_MODE"
 
+  # 3/3 — RELEASE : archivage et versionnement après déploiement réussi.
   release:
     name: Release GitHub versionnée
+    # Uniquement pour les push : les lancements manuels ne créent pas de release.
     needs: [tests, ovh]
     if: ${{ github.event_name == 'push' && needs.ovh.result == 'success' }}
     runs-on: ubuntu-24.04
+    # Ce job seul obtient le droit d'écrire une release/tag GitHub.
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      # Lire VERSION, vérifier son format et exiger les notes de release.
+      # Pas de doublon si la release existe déjà ; signaler un tag orphelin.
+      # Si la version est nouvelle, créer l'archive ZIP et publier la release.
       - name: Créer la release si la version est nouvelle
         shell: bash
         env:
