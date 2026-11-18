@@ -28,15 +28,15 @@
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="./manifest.webmanifest?v=3.15.5">
-  <link rel="icon" href="./favicon.ico?v=3.15.5" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=3.15.5">
-  <link rel="icon" type="image/png" sizes="48x48" href="./icons/favicon-48.png?v=3.15.5">
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png?v=3.15.5">
+  <link rel="manifest" href="./manifest.webmanifest?v=3.16.0">
+  <link rel="icon" href="./favicon.ico?v=3.16.0" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png?v=3.16.0">
+  <link rel="icon" type="image/png" sizes="48x48" href="./icons/favicon-48.png?v=3.16.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png?v=3.16.0">
   <meta name="application-name" content="silence.">
   <title>silence. | un moment à soi</title>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"silence.","url":"https://mebius.cc/meditation/","description":"Application de méditation minimaliste, avec repères sonores discrets et fonctionnement hors connexion.","applicationCategory":"LifestyleApplication","operatingSystem":"Web","inLanguage":"fr","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
-  <link rel="stylesheet" href="./styles.css?v=3.15.5">
+  <link rel="stylesheet" href="./styles.css?v=3.16.0">
 </head>
 <body class="is-opening">
   <div class="opening-overlay" aria-hidden="true"></div>
@@ -169,13 +169,24 @@
           <option value="bol">Bol feutré</option>
           <option value="bambou">Bois doux</option>
           <option value="goutte">Goutte douce</option>
+          <option value="nacre">Nacre</option>
+          <option value="aube">Aube</option>
+          <option value="halo">Halo</option>
+          <option value="velours">Velours</option>
+          <option value="rosee">Rosée</option>
+          <option value="sillage">Sillage</option>
+          <option value="brume">Brume</option>
+          <option value="clairiere">Clairière</option>
+          <option value="dune">Dune</option>
+          <option value="equilibre">Équilibre</option>
         </select>
       </div>
       <div class="setting">
         <label for="volume" class="setting-label">Volume</label>
         <div class="volume-line"><input id="volume" type="range" min="0" max="100" value="55"><button id="testSound" type="button" class="text-button">Écouter</button></div>
       </div>
-      <p class="sound-status" id="soundStatus" role="status" aria-live="polite"></p>
+      <p class="setting-note media-volume-hint">Le volume multimédia du téléphone est indépendant. Pendant « Écouter », utilise les boutons de volume du téléphone pour vérifier le niveau réel.</p>
+       <p class="sound-status" id="soundStatus" role="status" aria-live="polite"></p>
       <div class="setting">
         <span class="setting-label">Cercle vivant</span>
         <label class="switch" aria-label="Activer le mouvement doux du cercle"><input id="motion" type="checkbox" checked><span class="switch-track"></span></label>
@@ -190,10 +201,11 @@
       </div>
     </div>
     <button id="installButton" class="install-button hidden" type="button">Installer silence.</button>
-    <p class="version">Version 3.15.5</p>
+    <p class="version">Version 3.16.0</p>
   </dialog>
   <button type="button" id="veil" class="veil" aria-label="Afficher les commandes"><span class="veil-dot" aria-hidden="true"></span></button>
   <p class="boot-alert" role="alert">L’application n’a pas démarré. Vérifie que <code>app.js</code> est bien sur ton hébergement, puis recharge la page.</p>
-  <script src="./app.js?v=3.15.5" defer></script>
+  <script src="./sounds/soft-tones.js?v=3.16.0" defer></script>
+   <script src="./app.js?v=3.16.0" defer></script>
 </body>
 </html>

@@ -36,7 +36,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.15.5').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.16.0').is_hidden() # settings not open
  assert 'location.reload()' not in js, 'SW updates must not interrupt an idle launch'
  assert "visibilitychange" in js and "lastHiddenAt" in js, 'A resumed standalone PWA must restart its idle intro'
  assert page.locator('.opening-word').count()==0
@@ -66,7 +66,7 @@ with sync_playwright() as p:
  assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
  page.wait_for_function("!document.body.classList.contains('is-opening')",timeout=6500)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==3
+ assert page.locator('#tone option').count()==13
  assert page.locator('.field-art').count()==0
  assert page.locator('#fieldSvg').count()==1
  assert page.locator('#fieldSvg').evaluate("el => el.namespaceURI==='http://www.w3.org/2000/svg'")
@@ -94,7 +94,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.15.5').is_visible()
+ assert page.get_by_text('Version 3.16.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -110,6 +110,10 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Goutte douce')",timeout=7000)
  print('SOUND goutte:',page.locator('#soundStatus').text_content())
+ page.locator('#tone').select_option('nacre')
+ page.locator('#testSound').click()
+ page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Nacre')",timeout=5000)
+ print('SOUND nacre:',page.locator('#soundStatus').text_content())
  duration=page.evaluate("""async () => {
    const response=await fetch('./sounds/goutte.wav');
    if(!response.ok) throw new Error('No audio file');
@@ -229,7 +233,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.15.5' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.16.0' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

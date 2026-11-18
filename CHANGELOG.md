@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.16.0] - 2026-11-18
+
+- Dix nouveaux sons originaux à la fois doux et audibles : Nacre, Aube, Halo, Velours, Rosée, Sillage, Brume, Clairière, Dune et Équilibre. Durée 3,5 à 4,1 secondes, attaque progressive.
+- Synthèse locale et cache hors connexion, sans fichiers audio supplémentaires.
+- Bol feutré : suppression d'une décroissance artificielle de 125 ms ; même niveau d'aperçu et de repère.
+- Précision du volume multimédia indépendant du téléphone et avertissements sur les suspensions Web Audio.
+- Tests CI des dix timbres. Modes libre et fixe, minuterie et animation d'ouverture inchangés.
+
 ## [3.15.5] - 2026-11-16
 
 - Remplacement de l'ancienne iconographie PWA par le visuel organique ambré choisi, produit directement à partir de l'image haute résolution.

@@ -261,3 +261,6 @@ html[data-silence-ready="true"] .boot-alert { display:none; }
 .sound-status { margin: -1px 0 7px; text-align: right; color: #d4b99c; font-size: 12px; min-height: 0; }
 .sound-status:empty {display:none;}
 .version { margin: 14px 0 0; text-align: center; font-size: 11px; color: #81776b; }
+
+/* Le volume multimédia du téléphone complète le réglage interne. */
+.media-volume-hint { max-width: 31rem; margin: -2px 0 7px; line-height: 1.5; }

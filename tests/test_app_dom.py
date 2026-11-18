@@ -8,6 +8,7 @@ html=re.sub(r'<link[^>]+rel="(?:stylesheet|manifest|icon|apple-touch-icon)"[^>]*
 html=re.sub(r'<script src=".*?" defer></script>', '', html)
 css=(files/'styles.css').read_text()
 js=(files/'app.js').read_text()
+soft_tones=(files/'sounds'/'soft-tones.js').read_text()
 errors=[]
 def geometry(page):
  return page.evaluate("""() => {
@@ -32,6 +33,7 @@ def init(page, stored=None):
   }});
  }''',stored)
  page.add_style_tag(content=css)
+ page.add_script_tag(content=soft_tones)
  page.add_script_tag(content=js)
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
  if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
@@ -67,7 +69,7 @@ with sync_playwright() as p:
  page.on('pageerror',lambda error: errors.append(str(error)))
  init(page)
  assert page.locator('#setup').is_visible()
- assert page.locator('#tone option').count()==3
+ assert page.locator('#tone option').count()==13
  assert page.locator('.field-art').count()==0
  assert page.locator('#fieldSvg').count()==1
  assert page.locator('#fieldSvg').evaluate("el => el.namespaceURI==='http://www.w3.org/2000/svg'")
@@ -78,7 +80,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.15.5').is_visible()
+ assert page.get_by_text('Version 3.16.0').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()
@@ -89,6 +91,9 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Bois')",timeout=8000)
  print('SOUND bambou:',page.locator('#soundStatus').text_content())
+ page.locator('#tone').select_option('aube')
+ page.locator('#testSound').click()
+ page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Aube')",timeout=5000)
  page.locator('#tone').select_option('goutte')
  # Dans le test DOM, le fichier WAV externe n'est pas servi; le chargement complet est testé par HTTP.
  
