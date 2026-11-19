@@ -42,3 +42,6 @@ console.log('Repères audio : durée fixe unique, libre toutes les dix minutes, 
 assert.ok(source.includes('reset(true)'), 'Fin automatique : conserver le repère final.');
 assert.ok(source.includes("audioContext.state !== 'running'"), 'Détecter les suspensions Web Audio.');
 assert.ok(source.includes('function createSoftToneBuffer(context, name)'), 'Dix timbres embarqués directement dans le lecteur.');
+
+assert.ok(source.includes("loadSound(ctx, selected, mode)"), 'Le repère suit le mode libre ou fixe.');
+assert.ok(source.includes("mode === 'free'"), 'Le mode libre utilise bien la variante brève.');

@@ -29,21 +29,26 @@
         dune:      { name:'Dune',      notes:[[0,277.18,1],[1.3,369.99,.69]], duration:4.0, attack:.45, decay:1.50, h2:.26, h3:.045, flutter:.013 },
         equilibre: { name:'Équilibre', notes:[[0,369.99,1],[1.18,466.16,.65]], duration:3.9, attack:.31, decay:1.34, h2:.13, h3:.03, flutter:.007 }
       });
-      function createSoftToneBuffer(context, name) {
+      function createSoftToneBuffer(context, name, brief = false) {
         const tone=SOFT_TONES[name];
         if (!tone) throw new Error('Repère inconnu : ' + name);
         const rate=context.sampleRate;
-        const total=Math.ceil(tone.duration*rate);
+        // Mode libre : un seul petit tintement, au lieu d'une mélodie de 4 secondes.
+        // Mode fixe : conserver le son de fin complet, déjà plus audible.
+        const duration=brief ? .9 : tone.duration;
+        const attack=brief ? Math.max(.075,Math.min(.12,tone.attack*.32)) : tone.attack;
+        const decayTime=brief ? .37 : tone.decay;
+        const total=Math.ceil(duration*rate);
         const buffer=context.createBuffer(1,total,rate);
         const samples=buffer.getChannelData(0);
         const tau=2*Math.PI;
-        const endFade=.38;
-        for (const [start,frequency,weight] of tone.notes) {
+        const endFade=brief ? .20 : .38;
+        for (const [start,frequency,weight] of (brief ? tone.notes.slice(0,1) : tone.notes)) {
           for (let i=Math.ceil(start*rate);i<total;i++) {
             const t=i/rate-start;
-            const rise=Math.sin(Math.PI/2*Math.min(1,t/tone.attack))**2;
-            const decay=Math.exp(-t/tone.decay);
-            const tail=Math.sin(Math.PI/2*Math.min(1,Math.max(0,(tone.duration-i/rate)/endFade)))**2;
+            const rise=Math.sin(Math.PI/2*Math.min(1,t/attack))**2;
+            const decay=Math.exp(-t/decayTime);
+            const tail=Math.sin(Math.PI/2*Math.min(1,Math.max(0,(duration-i/rate)/endFade)))**2;
             const breathe=1-tone.flutter*(1-Math.cos(tau*1.15*t));
             const fundamental=Math.sin(tau*frequency*t);
             const second=tone.h2*Math.sin(tau*2*frequency*t+.18);
@@ -53,7 +58,7 @@
         }
         let peak=0;
         for (const sample of samples) peak=Math.max(peak,Math.abs(sample));
-        const normalize=.80/Math.max(.0001,peak);
+        const normalize=(brief ? .72 : .80)/Math.max(.0001,peak);
         for (let i=0;i<samples.length;i++) samples[i]*=normalize;
         return buffer;
       }
@@ -174,18 +179,19 @@
         }
         return buffer;
       }
-      function loadSound(ctx, name) {
+      function loadSound(ctx, name, mode = 'fixed') {
         // Un nom invalide ne doit jamais générer une fréquence undefined,
         // ce qui produisait un buffer silencieux à la place du vrai son.
         if (!Object.hasOwn(SOUND_NAMES, name)) {
           return Promise.reject(new Error('Repère sonore inconnu : ' + name));
         }
-        if (bufferCache.has(name)) return Promise.resolve(bufferCache.get(name));
-        if (pendingBuffers.has(name)) return pendingBuffers.get(name);
+        const key=Object.hasOwn(SOFT_TONES, name) ? name+':'+mode : name;
+        if (bufferCache.has(key)) return Promise.resolve(bufferCache.get(key));
+        if (pendingBuffers.has(key)) return pendingBuffers.get(key);
         const loading = Promise.resolve().then(async () => {
           try {
             // Nouveaux sons : création locale, sans téléchargement.
-            if (Object.hasOwn(SOFT_TONES, name)) return createSoftToneBuffer(ctx, name);
+            if (Object.hasOwn(SOFT_TONES, name)) return createSoftToneBuffer(ctx, name, mode === 'free');
             if (NATURE_FILES[name]) {
               const response = await fetch(NATURE_FILES[name], {cache:'force-cache'});
               if (!response.ok) throw new Error('Enregistrement naturel indisponible');
@@ -204,9 +210,9 @@
             if (NATURE_FILES[name]) throw error;
             return makeBackupSound(ctx, name);
           }
-        }).then(buffer => { bufferCache.set(name, buffer); return buffer; })
-          .finally(() => pendingBuffers.delete(name));
-        pendingBuffers.set(name, loading);
+        }).then(buffer => { bufferCache.set(key, buffer); return buffer; })
+          .finally(() => pendingBuffers.delete(key));
+        pendingBuffers.set(key, loading);
         return loading;
       }
       function playSound(ctx, buffer, at, strength, collection) {
@@ -268,18 +274,18 @@
         const token = ++audioScheduleToken;
         nextSoundRefreshAt = 0;
         if (!soundArmed || !audioContext || audioContext.state !== 'running' || phase !== 'running') return;
-        const ctx = audioContext, selected = settings.tone;
+        const ctx = audioContext, selected = settings.tone, mode = settings.mode;
         try {
-          const buffer = await loadSound(ctx, selected);
-          if (token !== audioScheduleToken || phase !== 'running' || !soundArmed || ctx.state !== 'running') return;
+          const buffer = await loadSound(ctx, selected, mode);
+          if (token !== audioScheduleToken || phase !== 'running' || settings.mode !== mode || !soundArmed || ctx.state !== 'running') return;
           const now = Date.now();
-          const dates = cueDates(settings.mode, startAt, settings.minutes, now);
+          const dates = cueDates(mode, startAt, settings.minutes, now);
           for (const date of dates) {
             // Même niveau interne en méditation et pendant le test « Écouter ».
              playSound(ctx, buffer, ctx.currentTime + Math.max(.08, (date - now) / 1000), 1, soundNodes);
           }
           // Renouveler deux minutes avant un repère, jamais exactement à son déclenchement.
-          if (settings.mode === 'free') nextSoundRefreshAt = dates[5] - 2 * MINUTE;
+          if (mode === 'free') nextSoundRefreshAt = dates[5] - 2 * MINUTE;
         } catch (error) {
           if (token === audioScheduleToken) {
             soundArmed = false;
@@ -293,14 +299,14 @@
       async function previewSound() {
         stopPreview();
         const token = previewToken;
-        const selected = settings.tone;
+        const selected = settings.tone, mode = settings.mode;
         audioMessage('Préparation du son…');
         // Le contexte est débloqué immédiatement pendant l'interaction utilisateur.
         const unlocking = unlockAudio();
         try {
           const ctx = await unlocking;
-          const buffer = await loadSound(ctx, selected);
-          if (token !== previewToken || settings.tone !== selected) return;
+          const buffer = await loadSound(ctx, selected, mode);
+          if (token !== previewToken || settings.tone !== selected || settings.mode !== mode) return;
           if (ctx.state !== 'running') throw new Error('Contexte suspendu');
           if (settings.volume === 0) {
             audioMessage('Le volume est à zéro.');
@@ -310,7 +316,7 @@
           if (!playSound(ctx, buffer, ctx.currentTime + .035, 1, previewNodes)) {
             throw new Error('Impossible de démarrer le son');
           }
-          audioMessage('Écoute : ' + SOUND_NAMES[selected]);
+          audioMessage('Écoute : ' + SOUND_NAMES[selected] + (mode === 'free' ? ' · repère 10 min' : ' · fin de séance'));
         } catch (error) {
           soundArmed = false;
           audioMessage('Lecture impossible. Vérifie le volume multimédia du téléphone et réessaie.');

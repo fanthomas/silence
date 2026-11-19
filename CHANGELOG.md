@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.16.2] - 2026-11-19
+
+- Mode libre : les dix nouveaux sons deviennent des repères de 0,9 seconde, d'une seule note, avec attaque et disparition progressives. Ils marquent les dix minutes sans jouer une mélodie complète.
+- Durées fixes : conservation des sons de fin plus longs (3,5 à 4,1 secondes) afin de rester perceptibles à l'issue d'une séance.
+- Le bouton Écouter utilise désormais la variante liée au mode sélectionné et indique clairement « repère 10 min » ou « fin de séance ».
+- Cache audio séparé par usage pour éviter que l'aperçu bref soit réutilisé pour la fin de séance, ou inversement.
+- Tests acoustiques et navigateur actualisés pour contrôler les deux durées, sans modifier le fonctionnement du minuteur.
+
 ## [3.16.1] - 2026-11-19
 
 - Corrige les sons « undefined » et inaudibles : les dix timbres sont inclus directement dans app.js, sans dépendance à un second script pouvant manquer au chargement.

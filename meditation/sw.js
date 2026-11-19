@@ -1,7 +1,7 @@
-/* silence. — Cache hors connexion, version 3.16.1 */
+/* silence. — Cache hors connexion, version 3.16.2 */
 'use strict';
-const CACHE = 'silence-v3.16.1';
-const ASSETS = ['./', './index.html', './styles.css?v=3.16.1', './app.js?v=3.16.1', './manifest.webmanifest?v=3.16.1', './icons/icon-192.png?v=3.16.1', './icons/icon-512.png?v=3.16.1', './icons/icon-180.png?v=3.16.1', './icons/favicon-32.png?v=3.16.1', './icons/favicon-48.png?v=3.16.1', './favicon.ico?v=3.16.1', './og-image.jpg', './sounds/goutte.wav'];
+const CACHE = 'silence-v3.16.2';
+const ASSETS = ['./', './index.html', './styles.css?v=3.16.2', './app.js?v=3.16.2', './manifest.webmanifest?v=3.16.2', './icons/icon-192.png?v=3.16.2', './icons/icon-512.png?v=3.16.2', './icons/icon-180.png?v=3.16.2', './icons/favicon-32.png?v=3.16.2', './icons/favicon-48.png?v=3.16.2', './favicon.ico?v=3.16.2', './og-image.jpg', './sounds/goutte.wav'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
