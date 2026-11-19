@@ -114,7 +114,7 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Nacre')",timeout=5000)
  print('SOUND nacre:',page.locator('#soundStatus').text_content())
- assert page.locator('#soundStatus').text_content()=='Écoute : Nacre'
+ assert page.locator('#soundStatus').text_content()=='Écoute : Nacre · repère 10 min'
  # Instrumenter AudioBufferSourceNode.start pour vérifier l'audio réellement programmé.
  page.evaluate("""() => {
    const proto=AudioBufferSourceNode.prototype;
@@ -136,7 +136,7 @@ with sync_playwright() as p:
  for selected,label in [('aube','Aube'),('halo','Halo'),('velours','Velours'),('rosee','Rosée'),('sillage','Sillage'),('brume','Brume'),('clairiere','Clairière'),('dune','Dune'),('equilibre','Équilibre')]:
   page.locator('#tone').select_option(selected)
   page.locator('#testSound').click()
-  page.wait_for_function("(name) => document.querySelector('#soundStatus').textContent==='Écoute : '+name",arg=label,timeout=7000)
+  page.wait_for_function("(name) => document.querySelector('#soundStatus').textContent==='Écoute : '+name+' · repère 10 min'",arg=label,timeout=7000)
  probe=page.evaluate('window.__silenceAudioProbe')
  assert len(probe)==9 and all(p['peak']>.1 and p['rms']>.05 and .89<=p['duration']<=.91 for p in probe),probe
  # Le mode durée fixe doit conserver la résonance audible de fin.
