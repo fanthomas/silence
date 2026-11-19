@@ -36,7 +36,7 @@
         // Mode libre : un seul petit tintement, au lieu d'une mélodie de 4 secondes.
         // Mode fixe : conserver le son de fin complet, déjà plus audible.
         const duration=brief ? .9 : tone.duration;
-        const attack=brief ? Math.max(.075,Math.min(.12,tone.attack*.32)) : tone.attack;
+        const attack=brief ? Math.max(.13,Math.min(.18,tone.attack*.48)) : tone.attack;
         const decayTime=brief ? .37 : tone.decay;
         const total=Math.ceil(duration*rate);
         const buffer=context.createBuffer(1,total,rate);
