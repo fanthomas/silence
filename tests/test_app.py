@@ -36,7 +36,7 @@ with sync_playwright() as p:
  page.on('console', lambda msg: errors.append('console error: '+msg.text) if msg.type=='error' else None)
  page.goto(f'http://localhost:{PORT}/meditation/',wait_until='networkidle')
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
- assert page.get_by_text('Version 3.16.0').is_hidden() # settings not open
+ assert page.get_by_text('Version 3.16.1').is_hidden() # settings not open
  assert 'location.reload()' not in js, 'SW updates must not interrupt an idle launch'
  assert "visibilitychange" in js and "lastHiddenAt" in js, 'A resumed standalone PWA must restart its idle intro'
  assert page.locator('.opening-word').count()==0
@@ -94,7 +94,7 @@ with sync_playwright() as p:
  assert images=={'og':[1200,630],'favicon':[32,32],'app':[512,512]},images
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.16.0').is_visible()
+ assert page.get_by_text('Version 3.16.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  # Désactiver l'attente, puis vérifier les deux aperçus audio réels
@@ -114,6 +114,32 @@ with sync_playwright() as p:
  page.locator('#testSound').click()
  page.wait_for_function("document.querySelector('#soundStatus').textContent.includes('Nacre')",timeout=5000)
  print('SOUND nacre:',page.locator('#soundStatus').text_content())
+ assert page.locator('#soundStatus').text_content()=='Écoute : Nacre'
+ # Instrumenter AudioBufferSourceNode.start pour vérifier l'audio réellement programmé.
+ page.evaluate("""() => {
+   const proto=AudioBufferSourceNode.prototype;
+   window.__silenceAudioProbe=[];
+   const old=proto.start;
+   proto.start=function(...args) {
+     const data=this.buffer?.getChannelData(0);
+     if(data) {
+       let peak=0,energy=0,count=0;
+       for(let i=0;i<data.length;i+=128) {
+         peak=Math.max(peak,Math.abs(data[i]));
+         energy+=data[i]*data[i]; count++;
+       }
+       window.__silenceAudioProbe.push({peak,rms:Math.sqrt(energy/count),duration:this.buffer.duration});
+     }
+     return old.apply(this,args);
+   };
+ }""")
+ for selected,label in [('aube','Aube'),('halo','Halo'),('velours','Velours'),('rosee','Rosée'),('sillage','Sillage'),('brume','Brume'),('clairiere','Clairière'),('dune','Dune'),('equilibre','Équilibre')]:
+  page.locator('#tone').select_option(selected)
+  page.locator('#testSound').click()
+  page.wait_for_function("(name) => document.querySelector('#soundStatus').textContent==='Écoute : '+name",arg=label,timeout=7000)
+ probe=page.evaluate('window.__silenceAudioProbe')
+ assert len(probe)==9 and all(p['peak']>.1 and p['rms']>.06 and p['duration']>3.4 for p in probe),probe
+
  duration=page.evaluate("""async () => {
    const response=await fetch('./sounds/goutte.wav');
    if(!response.ok) throw new Error('No audio file');
@@ -233,7 +259,7 @@ with sync_playwright() as p:
  # SW version tested on localhost
  page.wait_for_function("'serviceWorker' in navigator && !!navigator.serviceWorker.controller",timeout=12000)
  print('CACHES:',page.evaluate('async () => (await caches.keys()).filter(k=>k.startsWith("silence"))'))
- assert 'silence-v3.16.0' in page.evaluate('async () => await caches.keys()')
+ assert 'silence-v3.16.1' in page.evaluate('async () => await caches.keys()')
  # Check off-line resilience for cached local assets
  context.set_offline(True)
  page.reload(wait_until='domcontentloaded')

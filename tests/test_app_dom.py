@@ -8,7 +8,6 @@ html=re.sub(r'<link[^>]+rel="(?:stylesheet|manifest|icon|apple-touch-icon)"[^>]*
 html=re.sub(r'<script src=".*?" defer></script>', '', html)
 css=(files/'styles.css').read_text()
 js=(files/'app.js').read_text()
-soft_tones=(files/'sounds'/'soft-tones.js').read_text()
 errors=[]
 def geometry(page):
  return page.evaluate("""() => {
@@ -33,7 +32,6 @@ def init(page, stored=None):
   }});
  }''',stored)
  page.add_style_tag(content=css)
- page.add_script_tag(content=soft_tones)
  page.add_script_tag(content=js)
  assert page.locator('html').get_attribute('data-silence-ready')=='true'
  if not page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"):
@@ -80,7 +78,7 @@ with sync_playwright() as p:
  assert original_shape!=page.locator('#fieldWaveMiddle').get_attribute('d'), 'Organic SVG must change geometry'
  # screenshot skipped in CI
  page.locator('#settingsButton').click()
- assert page.get_by_text('Version 3.16.0').is_visible()
+ assert page.get_by_text('Version 3.16.1').is_visible()
  assert page.locator('#motion').is_checked()
  assert not page.locator('#dark').is_checked()
  page.locator('#delay').uncheck()

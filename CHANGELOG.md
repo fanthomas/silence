@@ -2,6 +2,14 @@
 
 Les versions officielles de **silence.** sont publiées sur [GitHub Releases](https://github.com/fanthomas/silence/releases).
 
+## [3.16.1] - 2026-11-19
+
+- Corrige les sons « undefined » et inaudibles : les dix timbres sont inclus directement dans app.js, sans dépendance à un second script pouvant manquer au chargement.
+- Un son inconnu déclenche désormais une erreur explicite, au lieu de générer un signal silencieux.
+- Le nouveau son « Velours » n'est plus converti par erreur en « Bol feutré ».
+- Tests de lecture réelle (source audio programmée et signal non silencieux) pour tous les nouveaux sons.
+- Service worker et fichiers versionnés. Aucun changement de l'interface ni des durées.
+
 ## [3.16.0] - 2026-11-18
 
 - Dix nouveaux sons originaux à la fois doux et audibles : Nacre, Aube, Halo, Velours, Rosée, Sillage, Brume, Clairière, Dune et Équilibre. Durée 3,5 à 4,1 secondes, attaque progressive.

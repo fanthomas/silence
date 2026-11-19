@@ -3,10 +3,15 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-const source=fs.readFileSync('meditation/sounds/soft-tones.js','utf8');
-const context={window:{}};
-vm.runInNewContext(source,context);
-const lib=context.window.SilenceSoftTones;
+// Vérifie le vrai moteur de production, sans script audio externe.
+const app=fs.readFileSync('meditation/app.js','utf8');
+const from=app.indexOf('const SOFT_TONES = Object.freeze({');
+const to=app.indexOf('const SOUND_NAMES =',from);
+assert.ok(from>=0&&to>from,'Palette intégrée au moteur principal');
+const context={};
+vm.runInNewContext(app.slice(from,to)+'\nthis.__lib={tones:SOFT_TONES,createBuffer:createSoftToneBuffer};',context);
+const lib=context.__lib;
+assert.ok(!app.includes('window.SilenceSoftTones'),'No dependent secondary script');
 assert.ok(lib);
 const ids=Object.keys(lib.tones);
 assert.equal(ids.length,10);

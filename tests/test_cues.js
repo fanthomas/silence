@@ -4,7 +4,6 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const source = fs.readFileSync('meditation/app.js', 'utf8');
-const palette = fs.readFileSync('meditation/sounds/soft-tones.js', 'utf8');
 const match = source.match(/      function cueDates\(mode, start, minutes, now\) \{[\s\S]*?\n      \}\n      async function scheduleSounds/);
 assert.ok(match, 'La fonction de programmation des repères doit exister.');
 const context = vm.createContext({ MINUTE: 60_000 });
@@ -42,4 +41,4 @@ console.log('Repères audio : durée fixe unique, libre toutes les dix minutes, 
 
 assert.ok(source.includes('reset(true)'), 'Fin automatique : conserver le repère final.');
 assert.ok(source.includes("audioContext.state !== 'running'"), 'Détecter les suspensions Web Audio.');
-assert.ok(palette.includes('window.SilenceSoftTones'), 'Dix timbres locaux disponibles.');
+assert.ok(source.includes('function createSoftToneBuffer(context, name)'), 'Dix timbres embarqués directement dans le lecteur.');
